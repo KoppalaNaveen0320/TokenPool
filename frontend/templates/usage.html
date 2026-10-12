@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Usage{% endblock %}
+{% block bc_page %}Usage{% endblock %}
+{% block active_page %}usage{% endblock %}
+{% block content %}
+<div class="page-hd">
+  <div><div class="page-super">Analytics</div><div class="page-title">Usage Statistics</div><div class="page-sub">Detailed breakdown of your AI token consumption.</div></div>
+  <div class="page-hd-actions">
+    <div class="timetabs">
+      <button class="timetab active" onclick="loadUsage('7d',this)">7D</button>
+      <button class="timetab" onclick="loadUsage('30d',this)">30D</button>
+      <button class="timetab" onclick="loadUsage('90d',this)">90D</button>
+    </div>
+  </div>
+</div>
+
+<div class="sg" style="margin-bottom:20px">
+  <div class="scard"><div class="scard-label">Total Tokens</div><div class="scard-val" id="uTok"><span class="spinner"></span></div><div class="scard-sub">In selected period</div></div>
+  <div class="scard"><div class="scard-label">Total Cost</div><div class="scard-val" id="uCost"><span class="spinner"></span></div><div class="scard-sub">Credits spent</div></div>
+  <div class="scard"><div class="scard-label">Requests</div><div class="scard-val" id="uReqs"><span class="spinner"></span></div><div class="scard-sub">API calls</div></div>
+  <div class="scard"><div class="scard-label">Avg Latency</div><div class="scard-val" id="uLat"><span class="spinner"></span></div><div class="scard-sub">Response time</div></div>
+</div>
+
+<div class="cg" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-hd"><div class="card-title">Daily Token Usage</div></div>
+    <div class="card-body">
+      <div style="height:220px;position:relative"><canvas id="dailyChart" style="display:none"></canvas></div>
+      <div id="chartEmpty" style="display:none;text-align:center;padding:60px 20px;color:#94a3b8;font-size:13px">No usage data for this period.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title">Usage by Model</div></div>
+    <div class="card-body">
+      <div style="height:180px;position:relative"><canvas id="modelChart" style="display:none"></canvas></div>
+      <div id="modelChartEmpty" style="display:none;text-align:center;padding:40px 20px;color:#94a3b8;font-size:13px">No model data yet.</div>
+      <div id="modelLegend" style="display:flex;flex-direction:column;gap:8px;margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><div class="card-title">Request Log</div><div class="card-sub">All AI requests</div></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Request ID</th><th>Model</th><th>Input</th><th>Output</th><th>Total</th><th>Cost</th><th>Latency</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="reqLog"><tr><td colspan="9" style="text-align:center;padding:20px;color:#94a3b8"><span class="spinner"></span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Error state -->
+<div id="usageError" style="display:none">
+  <div class="alert alert-error" style="margin-top:16px">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <div><strong>Unable to load usage data.</strong> <span id="usageErrMsg"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:12px" onclick="loadUsage('7d')">Retry</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _currentRange = "7d";
+
+async function loadUsage(range, btn) {
+  _currentRange = range;
+  if (btn) {
+    document.querySelectorAll(".timetab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+  document.getElementById("usageError").style.display = "none";
+
+  // Show loading spinners
+  ["uTok","uCost","uReqs","uLat"].forEach(id => {
+    document.getElementById(id).innerHTML = '<span class="spinner"></span>';
+  });
+  document.getElementById("reqLog").innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#94a3b8"><span class="spinner"></span></td></tr>`;
+
+  try {
+    const d = await ConsumerAPI.usage(range);
+    const s = d.data || d;
+
+    document.getElementById("uTok").textContent  = Number(s.total_tokens||0).toLocaleString("en-IN");
+    document.getElementById("uCost").textContent = "₹" + Number(s.total_cost||0).toFixed(4);
+    document.getElementById("uReqs").textContent = Number(s.request_count||0).toLocaleString("en-IN");
+    document.getElementById("uLat").textContent  = (s.avg_latency_ms||0) + "ms";
+
+    // Daily chart
+    const daily  = s.daily || [];
+    const labels = daily.map(d => d.date);
+    const values = daily.map(d => d.tokens || 0);
+    const hasData = values.some(v => v > 0);
+    const canvas = document.getElementById("dailyChart");
+    const empty  = document.getElementById("chartEmpty");
+    if (hasData) {
+      canvas.style.display = "block"; empty.style.display = "none";
+      lineChart("dailyChart", labels, values);
+    } else {
+      canvas.style.display = "none"; empty.style.display = "block";
+    }
+
+    // Model breakdown from requests
+    const reqs = s.requests || [];
+    const modelMap = {};
+    reqs.forEach(r => {
+      if (!modelMap[r.model]) modelMap[r.model] = { tokens:0, count:0 };
+      modelMap[r.model].tokens += r.total_tokens || 0;
+      modelMap[r.model].count  += 1;
+    });
+    const modelEntries = Object.entries(modelMap).sort((a,b) => b[1].tokens - a[1].tokens).slice(0,5);
+    const colors = ["#0d9488","#2563eb","#7c3aed","#d97706","#16a34a"];
+    const modelCanvas = document.getElementById("modelChart");
+    const modelEmpty  = document.getElementById("modelChartEmpty");
+    if (modelEntries.length) {
+      const total = modelEntries.reduce((a,b) => a + b[1].tokens, 0) || 1;
+      modelCanvas.style.display = "block"; modelEmpty.style.display = "none";
+      donutChart("modelChart", modelEntries.map(e=>e[0]), modelEntries.map(e=>e[1].tokens), colors);
+      document.getElementById("modelLegend").innerHTML = modelEntries.map(([name,data],i) =>
+        `<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${colors[i]};flex-shrink:0"></div>
+          <span style="flex:1;color:#475569">${escHtml(name)}</span>
+          <span style="font-weight:700;color:#0f172a">${Math.round(data.tokens/total*100)}%</span>
+        </div>`).join("");
+    } else {
+      modelCanvas.style.display = "none"; modelEmpty.style.display = "block";
+      document.getElementById("modelLegend").innerHTML = "";
+    }
+
+    // Request log
+    if (reqs.length) {
+      document.getElementById("reqLog").innerHTML = reqs.map(r => `
+        <tr>
+          <td class="text-muted" style="font-family:monospace;font-size:10.5px">${escHtml(r.id||"—")}</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="width:20px;height:20px;border-radius:5px;background:${mcol(r.badge||'N')};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white">${escHtml(r.badge||'?')}</div>
+            ${escHtml(r.model||"—")}
+          </div></td>
+          <td>${Number(r.input_tokens||0).toLocaleString()}</td>
+          <td>${Number(r.output_tokens||0).toLocaleString()}</td>
+          <td>${Number(r.total_tokens||0).toLocaleString()}</td>
+          <td>₹${Number(r.cost||0).toFixed(4)}</td>
+          <td>${r.latency_ms||0}ms</td>
+          <td>${sbadge(r.status||'COMPLETED')}</td>
+          <td class="text-muted">${fDate(r.created_at)}</td>
+        </tr>`).join("");
+    } else {
+      document.getElementById("reqLog").innerHTML = `<tr><td colspan="9"><div class="empty">
+        <div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75"/></svg></div>
+        <div class="empty-title">No requests in this period</div>
+        <div class="empty-desc">Start using AI chat to see usage records here</div>
+      </div></td></tr>`;
+    }
+  } catch(e) {
+    document.getElementById("usageError").style.display = "block";
+    document.getElementById("usageErrMsg").textContent = e.message || "";
+    ["uTok","uCost","uReqs","uLat"].forEach(id => {
+      document.getElementById(id).innerHTML = '<span style="color:#ef4444;font-size:13px">—</span>';
+    });
+    document.getElementById("reqLog").innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#94a3b8">Could not load usage data.</td></tr>`;
+  }
+}
+
+function mcol(l){return{N:"#0d9488",S:"#2563eb",A:"#7c3aed",V:"#d97706",C:"#dc2626",G:"#16a34a",O:"#f59e0b"}[(l||"N").toUpperCase()]||"#64748b"}
+function fDate(s){try{return new Date(s).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}catch{return"—";}}
+function escHtml(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+document.addEventListener("DOMContentLoaded", () => loadUsage("7d"));
+</script>
+{% endblock %}

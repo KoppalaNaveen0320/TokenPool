@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — TokenPool</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body{background:#f8fafc;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+    .auth-card{width:100%;max-width:460px;background:white;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:36px}
+    .auth-logo{display:flex;align-items:center;gap:9px;margin-bottom:26px;font-size:17px;font-weight:800;color:#0f172a}
+    .auth-logo .logo-icon{width:32px;height:32px;background:#0d9488;border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .auth-h{font-size:22px;font-weight:800;color:#0f172a;margin-bottom:4px}
+    .auth-s{font-size:13px;color:#64748b;margin-bottom:24px}
+    .err-box{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9px;padding:9px 13px;font-size:12.5px;margin-bottom:14px;display:none;align-items:center;gap:8px}
+    .auth-foot{margin-top:18px;text-align:center;font-size:13px;color:#64748b}
+    .auth-foot a{color:#0d9488;font-weight:600}
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  </style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div>
+    TokenPool
+  </div>
+  <div class="auth-h">Create your account</div>
+  <div class="auth-s">Join the AI usage marketplace</div>
+
+  <div class="err-box" id="errBox">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <span id="errMsg"></span>
+  </div>
+
+  <!-- Google / Gmail Primary Authentication -->
+  <button type="button" class="btn btn-outline btn-full btn-lg" id="googleRegBtn" style="margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:600;border-color:#cbd5e1" onclick="handleGoogleRegister()">
+    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.87c2.27-2.09 3.675-5.17 3.675-9.14z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.87-3.04c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.25v3.13C3.26 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.25c-.25-.72-.39-1.49-.39-2.25s.14-1.53.39-2.25V6.62H1.25C.45 8.24 0 10.06 0 12s.45 3.76 1.25 5.38l4.02-3.13z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.62l4.02 3.13c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+    Sign up with Google / Gmail
+  </button>
+  <div style="display:flex;align-items:center;margin-bottom:16px"><div style="flex:1;height:1px;background:#e2e8f0"></div><span style="padding:0 10px;font-size:11px;color:#94a3b8;text-transform:uppercase">or register with password</span><div style="flex:1;height:1px;background:#e2e8f0"></div></div>
+
+  <form id="regForm" autocomplete="on">
+    <div class="frow">
+      <div class="fg"><label class="flabel" for="fname">First name</label><input type="text" id="fname" class="fc" placeholder="Raj" required autocomplete="given-name"></div>
+      <div class="fg"><label class="flabel" for="lname">Last name</label><input type="text" id="lname" class="fc" placeholder="Patel" required autocomplete="family-name"></div>
+    </div>
+    <div class="fg"><label class="flabel" for="email">Email address</label><input type="email" id="email" class="fc" placeholder="you@example.com" required autocomplete="email"></div>
+    <div class="fg">
+      <label class="flabel" for="password">Password</label>
+      <div class="pwd-wrap">
+        <input type="password" id="password" class="fc" placeholder="Min. 8 characters" required autocomplete="new-password">
+        <button type="button" class="pwd-tog" onclick="togPwd('password')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="flabel" for="confirm">Confirm password</label>
+      <div class="pwd-wrap">
+        <input type="password" id="confirm" class="fc" placeholder="Re-enter password" required autocomplete="new-password">
+        <button type="button" class="pwd-tog" onclick="togPwd('confirm')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
+      </div>
+    </div>
+    <div class="fg"><label class="cb-wrap"><input type="checkbox" id="tos" required> I agree to the <a href="#" style="color:#0d9488;font-weight:600">Terms of Service</a> and <a href="#" style="color:#0d9488;font-weight:600">Privacy Policy</a></label></div>
+    <button type="submit" class="btn btn-primary btn-full btn-lg" id="regBtn">Create account</button>
+  </form>
+  <div class="auth-foot">Already have an account? <a href="/login">Sign in →</a></div>
+</div>
+
+<div class="toast-cont"></div>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+  redirectIfLoggedIn();
+  function togPwd(id) { const i=document.getElementById(id); i.type=i.type==="password"?"text":"password"; }
+  function showErr(msg) { document.getElementById("errMsg").textContent=msg; document.getElementById("errBox").style.display="flex"; }
+  function hideErr()    { document.getElementById("errBox").style.display="none"; }
+
+  async function handleGoogleRegister() {
+    const emailPrompt = prompt("Enter your Gmail address to sign up with Google:", "provider@gmail.com");
+    if (!emailPrompt) return;
+    const namePrompt = prompt("Enter your full name:", "AI Provider");
+    const btn = document.getElementById("googleRegBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating account via Google...';
+    hideErr();
+    try {
+      const user = await doGoogleLogin(emailPrompt.trim(), namePrompt || "AI Provider");
+      toast("Account created via Google!", "ok");
+      setTimeout(() => {
+        window.location.href = "/provider/dashboard";
+      }, 500);
+    } catch(ex) {
+      showErr(ex.message || "Google registration failed.");
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.87c2.27-2.09 3.675-5.17 3.675-9.14z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.87-3.04c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.25v3.13C3.26 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.25c-.25-.72-.39-1.49-.39-2.25s.14-1.53.39-2.25V6.62H1.25C.45 8.24 0 10.06 0 12s.45 3.76 1.25 5.38l4.02-3.13z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.62l4.02 3.13c.95-2.85 3.6-4.96 6.73-4.96z"/></svg> Sign up with Google / Gmail';
+    }
+  }
+
+  document.getElementById("regForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    hideErr();
+    const fname  = document.getElementById("fname").value.trim();
+    const lname  = document.getElementById("lname").value.trim();
+    const email  = document.getElementById("email").value.trim();
+    const pw     = document.getElementById("password").value;
+    const conf   = document.getElementById("confirm").value;
+    const tos    = document.getElementById("tos").checked;
+    const btn    = document.getElementById("regBtn");
+
+    if (!fname||!lname||!email||!pw) { showErr("All fields are required."); return; }
+    if (pw.length < 8)  { showErr("Password must be at least 8 characters."); return; }
+    if (pw !== conf)    { showErr("Passwords do not match."); return; }
+    if (!tos)           { showErr("You must accept the Terms of Service."); return; }
+
+    btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Creating account…';
+    try {
+      const data = await AuthAPI.register({ full_name: fname+" "+lname, email, password: pw });
+      setSession(data.access_token, data.user);
+      window.location.href = "/dashboard";
+    } catch(ex) {
+      showErr(ex.message || "Registration failed. Please try again.");
+      btn.disabled=false; btn.textContent="Create account";
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+# Environment and Secret Files
+.env
+.env.*
+!.env.*.example
+*.key
+*.pem
+*.cert
+*.crt
+secrets/
+credentials/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# Databases & local uploads
+*.sqlite3
+*.db
+uploads/
+backend/app/uploads/
+
+# Logs
+*.log
+logs/
+
+# Operating System & IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

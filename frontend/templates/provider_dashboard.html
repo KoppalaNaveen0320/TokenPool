@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+{% block title %}Provider Dashboard{% endblock %}
+{% block bc_page %}Dashboard{% endblock %}
+{% block active_page %}provider_dashboard{% endblock %}
+{% block ws_class %}p{% endblock %}
+{% block role_label %}Provider{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section-label">Provider</div>
+<a class="nav-a {% if active_page == 'provider_dashboard' %}active{% endif %}" href="/provider/dashboard">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 12 2-2m0 0 7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11 2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>
+  Overview
+</a>
+<a class="nav-a {% if active_page == 'provider_connections' %}active{% endif %}" href="/provider/connections">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>
+  API Connections
+</a>
+<a class="nav-a {% if active_page == 'provider_listings' %}active{% endif %}" href="/provider/listings">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349"/></svg>
+  My Listings
+</a>
+<a class="nav-a {% if active_page == 'provider_earnings' %}active{% endif %}" href="/provider/earnings">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+  Earnings
+</a>
+<div class="nav-section-label">Account</div>
+<a class="nav-a" href="/notifications">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022"/></svg>
+  Notifications
+</a>
+<a class="nav-a" href="/settings">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281"/></svg>
+  Settings
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Provider Portal</div>
+    <div class="page-title">Provider Overview</div>
+    <div class="page-sub">Monitor your AI capacity listings and earnings.</div>
+  </div>
+  <div class="page-hd-actions">
+    <a href="/provider/connections" class="btn btn-outline">+ Add API Connection</a>
+    <a href="/provider/listings" class="btn btn-primary">Manage Listings</a>
+  </div>
+</div>
+
+<div class="sg" style="margin-bottom:20px">
+  <div class="scard" style="border-left:3px solid #0d9488">
+    <div class="scard-top"><div class="scard-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div><span class="scard-badge" id="balChg">+0%</span></div>
+    <div class="scard-label">Available Balance</div>
+    <div class="scard-val" id="provBal">₹0.00</div>
+    <div class="scard-sub">Ready to withdraw</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon" style="background:#dcfce7;color:#16a34a"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75"/></svg></div><span class="scard-badge" id="earChg">+0%</span></div>
+    <div class="scard-label">Total Earned</div>
+    <div class="scard-val" id="provEarned">₹0.00</div>
+    <div class="scard-sub">Lifetime earnings</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon" style="background:#dbeafe;color:#2563eb"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36"/></svg></div></div>
+    <div class="scard-label">Active Listings</div>
+    <div class="scard-val" id="provListings">0</div>
+    <div class="scard-sub">Models listed</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon" style="background:#ede9fe;color:#7c3aed"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757"/></svg></div></div>
+    <div class="scard-label">Requests Served</div>
+    <div class="scard-val" id="provReqs">0</div>
+    <div class="scard-sub">This month</div>
+  </div>
+</div>
+
+<!-- MY AI ACCOUNTS SECTION -->
+<div class="card" style="margin-bottom:20px;border-left:4px solid var(--teal)">
+  <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="card-title" style="display:flex;align-items:center;gap:8px">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;color:var(--teal)"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+        MY AI ACCOUNTS
+      </div>
+      <div style="font-size:12px;color:var(--slate-500);margin-top:2px">
+        Gmail-based AI account association & capacity management · TokenPool primary identity
+      </div>
+    </div>
+    <a href="/provider/connections" class="btn btn-primary btn-sm">+ Connect AI Account</a>
+  </div>
+  <div class="card-body">
+    <!-- Identity & Security Notice -->
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:16px;font-size:12px;color:#166534">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;color:#16a34a;flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/></svg>
+      <div>
+        <strong>Verified Primary Identity:</strong> Connect your already-owned AI accounts using your Gmail identity. <em>TokenPool never requests Gmail passwords, AI account passwords, OTP/MFA, browser cookies, or browser sessions.</em>
+      </div>
+    </div>
+
+    <div id="provConnectionsGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px">
+      <div style="text-align:center;padding:24px;color:var(--slate-400);grid-column:1/-1"><span class="spinner"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="cg">
+  <div class="card">
+    <div class="card-hd"><div class="card-title">Earnings Over Time</div><div class="card-sub">Daily revenue</div></div>
+    <div class="card-body"><div style="height:200px"><canvas id="earningsChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title">Quick Actions</div></div>
+    <a href="/provider/connections" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757"/></svg></div>
+      <div><div class="qa-title">Add API Connection</div><div class="qa-sub">Connect your authorized API key</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/provider/listings" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></div>
+      <div><div class="qa-title">Create New Listing</div><div class="qa-sub">List a new AI model</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/provider/earnings" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0"/></svg></div>
+      <div><div class="qa-title">Request Payout</div><div class="qa-sub">Withdraw your earnings</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/notifications" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75"/></svg></div>
+      <div><div class="qa-title">Notifications</div><div class="qa-sub">Check latest alerts</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- Payment Requests & Customer Orders -->
+<div class="card" style="margin-top:20px">
+  <div class="card-hd">
+    <div>
+      <div class="card-title">Payment Verification & Customer Orders</div>
+      <div style="font-size:12px;color:var(--slate-500);margin-top:2px">
+        Verify that payment has arrived in your account before confirming. Confirming an order atomically releases credits to the buyer.
+      </div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-outline btn-sm" id="btnProvPending" onclick="filterProvOrders('PAYMENT_SUBMITTED')">Pending Review</button>
+      <button class="btn btn-outline btn-sm" id="btnProvAll" onclick="filterProvOrders('')">All Orders</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Buyer</th>
+          <th>Model / Listing</th>
+          <th>Credits</th>
+          <th>Amount</th>
+          <th>Transaction ID</th>
+          <th>Screenshot</th>
+          <th>Submitted</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="provOrdersBody">
+        <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let _sellerOrders = [];
+let _provFilterStatus = "PAYMENT_SUBMITTED";
+
+function sBadge(s) {
+  const map = {
+    PAYMENT_PENDING: "badge-yellow",
+    PAYMENT_SUBMITTED: "badge-blue",
+    APPROVED: "badge-green",
+    DISPUTED: "badge-red",
+    ADMIN_REVIEW: "badge-purple",
+    REJECTED: "badge-red",
+    CANCELLED: "badge-gray",
+  };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+
+function filterProvOrders(status) {
+  _provFilterStatus = status;
+  document.getElementById("btnProvPending").classList.toggle("btn-primary", status === "PAYMENT_SUBMITTED");
+  document.getElementById("btnProvAll").classList.toggle("btn-primary", status === "");
+  loadSellerOrders();
+}
+
+async function loadSellerOrders() {
+  const tbody = document.getElementById("provOrdersBody");
+  tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>`;
+  try {
+    const res = await ProviderOrdersAPI.list(_provFilterStatus);
+    _sellerOrders = res?.data?.orders || [];
+    if (!_sellerOrders.length) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--slate-400)">
+        No orders found in this view.
+      </td></tr>`;
+      return;
+    }
+    tbody.innerHTML = _sellerOrders.map(o => `
+      <tr>
+        <td style="font-family:monospace;font-weight:700" title="${escHtml(o.order_id||'')}">\#${o.id}</td>
+        <td>${escHtml(o.buyer_name || 'Buyer')}</td>
+        <td>${escHtml(o.model_name || 'AI Model')}</td>
+        <td style="font-weight:700;color:var(--teal)">${Number(o.quantity).toLocaleString('en-IN')}</td>
+        <td style="font-weight:700">₹${Number(o.total_amount).toFixed(2)}</td>
+        <td><code style="font-size:11px">${escHtml(o.transaction_id || '—')}</code></td>
+        <td>
+          ${o.has_proof ? `
+            <a href="${o.proof_url || OrdersAPI.proofUrl(o.order_id)}" target="_blank" class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px">
+              View Screenshot
+            </a>` : '—'}
+        </td>
+        <td style="font-size:11.5px;color:var(--slate-400)">
+          ${o.proof_submitted_at ? new Date(o.proof_submitted_at).toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'}) : '—'}
+        </td>
+        <td>${sBadge(o.status)}</td>
+        <td>
+          ${o.status === 'PAYMENT_SUBMITTED' || o.status === 'SELLER_REVIEW' ? `
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-primary btn-sm" style="padding:4px 8px;font-size:11px" onclick="confirmOrder('${escHtml(o.order_id||'')}', ${Number(o.total_amount).toFixed(2)})">
+                ✓ Confirm
+              </button>
+              <button class="btn btn-outline btn-sm" style="padding:4px 8px;font-size:11px;color:#ef4444;border-color:#fca5a5" onclick="rejectOrder('${escHtml(o.order_id||'')}')">
+                ✕ Reject
+              </button>
+            </div>
+          ` : `
+            <span style="font-size:11px;color:var(--slate-400)">${o.status === 'APPROVED' ? 'Released' : 'Processed'}</span>
+          `}
+        </td>
+      </tr>
+    `).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#ef4444">
+      Failed to load orders: ${escHtml(err.message || 'Error')}
+    </td></tr>`;
+  }
+}
+
+async function confirmOrder(orderId, amount) {
+  if (!confirm(`Did you verify that ₹${Number(amount).toFixed(2)} arrived in your payment account?\n\nClick OK only if funds are received. This will release the credits to the buyer.`)) {
+    return;
+  }
+  try {
+    await ProviderOrdersAPI.confirm(orderId);
+    alert("Payment confirmed! Credits have been released to the buyer and your earnings updated.");
+    loadSellerOrders();
+    // Refresh balance and overview
+    ProviderAPI.overview().then(d => {
+      const s = d?.data || d;
+      document.getElementById("provBal").textContent = "\u20b9" + Number(s.balance||0).toFixed(2);
+      document.getElementById("provEarned").textContent = "\u20b9" + Number(s.total_earned||0).toFixed(2);
+    });
+  } catch (err) {
+    alert("Confirmation failed: " + (err.message || "Error"));
+  }
+}
+
+async function rejectOrder(orderId) {
+  const reason = prompt("Enter reason for rejecting this payment (e.g. 'Amount does not match' or 'Transaction not found in bank account'):");
+  if (!reason) return;
+  try {
+    await ProviderOrdersAPI.reject(orderId, reason);
+    alert("Payment rejected.");
+    loadSellerOrders();
+  } catch (err) {
+    alert("Rejection failed: " + (err.message || "Error"));
+  }
+}
+
+async function disconnectAi(connId) {
+  if (!confirm("Are you sure you want to disconnect this AI account? Any active marketplace listings linked to this account will be paused.")) return;
+  try {
+    await ProviderAPI.disconnectAiAccount(connId);
+    toast("AI account disconnected successfully.", "ok");
+    loadCapacitySources();
+  } catch(e) {
+    toast(e.message || "Failed to disconnect", "err");
+  }
+}
+
+async function loadCapacitySources() {
+  const container = document.getElementById("provConnectionsGrid");
+  try {
+    const res = await ProviderAPI.aiAccounts();
+    const accounts = res?.data?.accounts || res?.accounts || [];
+    const providerEmail = res?.data?.provider_identity?.email || res?.provider_identity?.email || "provider@gmail.com";
+
+    if (!accounts.length) {
+      container.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:28px 16px;background:var(--slate-50);border-radius:10px;border:1px dashed var(--slate-300)">
+          <div style="font-weight:700;color:var(--slate-700);margin-bottom:4px">No AI accounts connected.</div>
+          <div style="font-size:12.5px;color:var(--slate-500);margin-bottom:14px">Connect your already-owned AI accounts using your Gmail identity.</div>
+          <a href="/provider/connections" class="btn btn-primary btn-sm">+ Connect AI Account</a>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = accounts.map(a => {
+      const isConnected = a.connection_status === 'CONNECTED';
+      const isMatched = a.identity_status === 'IDENTITY_MATCHED';
+      const isAuthorized = a.authorization_status === 'AUTHORIZED';
+      const isEligible = a.marketplace_status === 'ELIGIBLE';
+
+      const emailDisplay = a.account_email || providerEmail;
+      const planDisplay = a.plan_name || 'Unable to verify';
+
+      return `
+        <div class="card" style="margin:0;border:1px solid var(--slate-200);box-shadow:none;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;border-bottom:1px solid var(--slate-100);padding-bottom:10px">
+              <div>
+                <div style="font-size:16px;font-weight:800;color:var(--slate-800)">${escHtml(a.display_name)}</div>
+                <div style="font-size:12px;color:var(--slate-500);display:flex;align-items:center;gap:4px;margin-top:2px">
+                  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="13" height="13" style="color:var(--teal)"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
+                  ${escHtml(emailDisplay)}
+                </div>
+              </div>
+              <div style="text-align:right">
+                <span class="badge ${isConnected ? 'badge-green' : 'badge-gray'}" style="font-size:11px">
+                  ${isConnected ? '✓ Connected' : 'Not Connected'}
+                </span>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+              <span class="badge ${isMatched ? 'badge-green' : 'badge-yellow'}" style="font-size:10.5px">
+                ${isMatched ? '✓ Identity matched' : '⚠ Identity pending'}
+              </span>
+              <span class="badge ${isAuthorized ? 'badge-green' : 'badge-yellow'}" style="font-size:10.5px">
+                ${isAuthorized ? '✓ Authorized' : 'Not Authorized'}
+              </span>
+              <span class="badge badge-blue" style="font-size:10.5px">
+                Plan: ${escHtml(planDisplay)}
+              </span>
+            </div>
+
+            <div style="margin-bottom:12px;padding:8px 10px;border-radius:7px;font-size:11.5px;${isEligible ? 'background:#f0fdf4;color:#166534;border:1px solid #bbf7d0' : 'background:#fffbeb;color:#92400e;border:1px solid #fde68a'}">
+              <strong>Marketplace:</strong> ${isEligible ? '✓ Eligible for consumer execution' : '⚠ Unavailable: ' + escHtml(a.marketplace_reason || 'Official 3rd-party execution API required')}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--slate-50);padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px">
+              <div>
+                <div style="color:var(--slate-400);font-size:11px">Declared Capacity:</div>
+                <div style="font-weight:700;color:var(--slate-800)">${Number(a.capacity_declared||0).toLocaleString('en-IN')} tokens</div>
+              </div>
+              <div>
+                <div style="color:var(--slate-400);font-size:11px">Marketplace Remaining:</div>
+                <div style="font-weight:700;color:var(--teal)">${Number(a.capacity_remaining||0).toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--slate-100)">
+            ${isConnected ? `
+              <a href="/provider/connections" class="btn btn-outline btn-sm" style="font-size:11.5px;padding:4px 9px">Manage</a>
+              ${isEligible ? `<a href="/provider/listings" class="btn btn-primary btn-sm" style="font-size:11.5px;padding:4px 9px">Create Listing</a>` : ''}
+              <button class="btn btn-outline btn-sm" style="font-size:11.5px;padding:4px 9px;color:#dc2626" onclick="disconnectAi('${a.connection_id}')">Disconnect</button>
+            ` : `
+              <a href="/provider/connections?connect=${a.provider_type}" class="btn btn-primary btn-sm" style="font-size:11.5px;padding:4px 10px">Connect AI Account</a>
+            `}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#ef4444;padding:16px">Failed to load AI accounts: ${escHtml(err.message||'')}</div>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  loadCapacitySources();
+  try {
+    const d = await ProviderAPI.overview();
+    const s = d?.data || d;
+    document.getElementById("provBal").textContent     = "\u20b9" + Number(s.balance||0).toFixed(2);
+    document.getElementById("provEarned").textContent  = "\u20b9" + Number(s.total_earned||0).toFixed(2);
+    document.getElementById("provListings").textContent = Number(s.active_listings||0);
+    document.getElementById("provReqs").textContent    = Number(s.monthly_requests||0).toLocaleString("en-IN");
+    const labels = (s.daily_earnings||[]).map(d => d.date||d.day||'');
+    const data   = (s.daily_earnings||[]).map(d => d.amount||d.earnings||0);
+    if (data.some(v => v > 0)) {
+      lineChart("earningsChart", labels, data);
+    }
+  } catch(e) {
+    ["provBal","provEarned","provListings","provReqs"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<span style="color:#ef4444;font-size:13px">\u2014</span>';
+    });
+  }
+
+  filterProvOrders('PAYMENT_SUBMITTED');
+});
+</script>
+{% endblock %}
+

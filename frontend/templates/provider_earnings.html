@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Earnings{% endblock %}
+{% block bc_page %}Earnings{% endblock %}
+{% block active_page %}provider_earnings{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div><div class="page-super">Provider</div><div class="page-title">Earnings &amp; Payouts</div><div class="page-sub">Track your revenue and request withdrawals.</div></div>
+  <div class="page-hd-actions"><button class="btn btn-primary" onclick="openPayoutModal()" id="payoutBtn">Request Payout</button></div>
+</div>
+
+<div class="sg" style="margin-bottom:20px">
+  <div class="scard" style="border-left:3px solid #0d9488">
+    <div class="scard-label">Available to Withdraw</div>
+    <div class="scard-val" id="eWithdraw"><span class="spinner"></span></div>
+    <div class="scard-sub">Ready now</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">Pending Earnings</div>
+    <div class="scard-val" id="ePending"><span class="spinner"></span></div>
+    <div class="scard-sub">Processing</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">Total Earned</div>
+    <div class="scard-val" id="eTotal"><span class="spinner"></span></div>
+    <div class="scard-sub">Lifetime</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">Monthly Requests</div>
+    <div class="scard-val" id="eReqs"><span class="spinner"></span></div>
+    <div class="scard-sub">This month</div>
+  </div>
+</div>
+
+<!-- Error state -->
+<div id="earningsError" style="display:none;margin-bottom:18px">
+  <div class="alert alert-error">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <div><strong>Unable to load earnings data.</strong> <span id="earningsErrMsg"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:12px" onclick="loadEarnings()">Retry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Not connected state -->
+<div id="notConnected" style="display:none">
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:48px 32px">
+      <div style="width:56px;height:56px;background:#f1f5f9;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:28px;height:28px;color:#94a3b8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px">No provider account connected</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:20px">Connect your AI provider to start earning from your capacity.</div>
+      <a href="/provider/connections" class="btn btn-primary">Connect Provider</a>
+    </div>
+  </div>
+</div>
+
+<div id="earningsContent" style="display:none">
+  <div class="cg" style="margin-bottom:18px">
+    <div class="card">
+      <div class="card-hd"><div class="card-title">Daily Earnings</div><div class="card-sub">Revenue last 7 days</div></div>
+      <div class="card-body"><div style="height:200px;position:relative"><canvas id="earnChart" style="display:none"></canvas>
+        <div id="earnChartEmpty" style="display:none;text-align:center;padding:60px 20px;color:#94a3b8;font-size:13px">No earnings data yet.</div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="card-title">Payout History</div></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Amount</th><th>Destination</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="payoutBody"><tr><td colspan="5"><div class="empty">
+            <div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659"/></svg></div>
+            <div class="empty-title">No payouts yet</div>
+          </div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payout modal -->
+<div class="overlay" id="payoutModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">Request Payout</div><button class="modal-close" onclick="closeModal('payoutModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="alert alert-info"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg><div>Available: <strong id="modalBalance">₹0.00</strong>. Minimum payout: ₹500. Processing takes 1–3 business days.</div></div>
+      <div class="fg"><label class="flabel">Amount (₹)</label><input type="number" id="payAmt" class="fc" placeholder="Enter amount" min="500"></div>
+      <div class="fg"><label class="flabel">Payout Method</label><select class="fc fsel" id="payDest"><option value="UPI">UPI ID</option><option value="Bank Transfer">Bank Transfer (NEFT)</option></select></div>
+      <div class="fg"><label class="flabel">UPI ID / Account Number</label><input type="text" class="fc" id="payAcct" placeholder="yourname@upi or account number"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('payoutModal')">Cancel</button>
+      <button class="btn btn-primary" id="payoutSubmitBtn" onclick="doPayout()">Request Payout</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _withdrawable = 0;
+
+async function loadEarnings() {
+  document.getElementById("earningsError").style.display   = "none";
+  document.getElementById("notConnected").style.display    = "none";
+  document.getElementById("earningsContent").style.display = "none";
+
+  try {
+    const d = await ProviderAPI.overview();
+    const s = d.data || d;
+
+    if (!s.connected) {
+      document.getElementById("notConnected").style.display = "block";
+      ["eWithdraw","ePending","eTotal","eReqs"].forEach(id => {
+        document.getElementById(id).textContent = "₹0.00";
+      });
+      document.getElementById("eReqs").textContent = "0";
+      return;
+    }
+
+    _withdrawable = s.balance || 0;
+    document.getElementById("eWithdraw").textContent = "₹" + Number(_withdrawable).toFixed(2);
+    document.getElementById("ePending").textContent  = "₹" + Number(s.pending_earnings||0).toFixed(2);
+    document.getElementById("eTotal").textContent    = "₹" + Number(s.total_earned||0).toFixed(2);
+    document.getElementById("eReqs").textContent     = Number(s.monthly_requests||0).toLocaleString("en-IN");
+    document.getElementById("modalBalance").textContent = "₹" + Number(_withdrawable).toFixed(2);
+    document.getElementById("payAmt").max = _withdrawable;
+
+    document.getElementById("earningsContent").style.display = "block";
+
+    // Earnings chart
+    const daily = s.daily_earnings || [];
+    const hasEarnings = daily.some(d => d.amount > 0);
+    const earnCanvas = document.getElementById("earnChart");
+    const earnEmpty  = document.getElementById("earnChartEmpty");
+    if (hasEarnings) {
+      earnCanvas.style.display = "block"; earnEmpty.style.display = "none";
+      barChart("earnChart", daily.map(d => d.date), daily.map(d => d.amount), "#0d9488");
+    } else {
+      earnCanvas.style.display = "none"; earnEmpty.style.display = "block";
+    }
+
+    // Payout history
+    await loadPayouts();
+  } catch(e) {
+    document.getElementById("earningsError").style.display = "block";
+    document.getElementById("earningsErrMsg").textContent = e.message || "";
+    ["eWithdraw","ePending","eTotal","eReqs"].forEach(id => {
+      document.getElementById(id).innerHTML = '<span style="color:#ef4444;font-size:13px">—</span>';
+    });
+  }
+}
+
+async function loadPayouts() {
+  try {
+    const d = await ProviderAPI.payouts();
+    const payouts = d?.data?.payouts || d?.data || [];
+    if (payouts.length) {
+      document.getElementById("payoutBody").innerHTML = payouts.map(p => `
+        <tr>
+          <td style="font-weight:600">₹${Number(p.amount||0).toFixed(2)}</td>
+          <td>${escHtml(p.destination||"—")}</td>
+          <td class="text-muted" style="font-size:11px">${escHtml(p.reference_id||"—")}</td>
+          <td>${sbadge(p.status||"PENDING")}</td>
+          <td class="text-muted">${fDate(p.created_at)}</td>
+        </tr>`).join("");
+    } else {
+      document.getElementById("payoutBody").innerHTML = `<tr><td colspan="5"><div class="empty">
+        <div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659"/></svg></div>
+        <div class="empty-title">No payouts yet</div>
+        <div class="empty-desc">Request your first payout when you have earnings</div>
+      </div></td></tr>`;
+    }
+  } catch(e) {
+    document.getElementById("payoutBody").innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#94a3b8">Could not load payout history.</td></tr>`;
+  }
+}
+
+function openPayoutModal() {
+  if (_withdrawable < 500) {
+    toast("Minimum payout is ₹500. Your withdrawable balance is ₹" + _withdrawable.toFixed(2), "warn");
+    return;
+  }
+  document.getElementById("payAmt").value = Math.floor(_withdrawable);
+  openModal("payoutModal");
+}
+
+async function doPayout() {
+  const amt  = parseFloat(document.getElementById("payAmt").value);
+  const method = document.getElementById("payDest").value;
+  const acct = document.getElementById("payAcct").value.trim();
+  if (!amt || amt < 500) { toast("Minimum payout is ₹500.", "warn"); return; }
+  if (!acct) { toast("Please enter your payout account details.", "warn"); return; }
+  const dest = method + ": " + acct;
+
+  const btn = document.getElementById("payoutSubmitBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Processing…';
+
+  try {
+    await ProviderAPI.requestPayout(amt, dest);
+    closeModal("payoutModal");
+    toast("Payout of ₹" + amt + " requested successfully!", "ok");
+    loadEarnings();
+  } catch(e) {
+    toast(e.message || "Payout request failed.", "err");
+  } finally {
+    btn.disabled = false; btn.textContent = "Request Payout";
+  }
+}
+
+function fDate(s){try{return new Date(s).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}catch{return"—";}}
+function escHtml(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+document.addEventListener("DOMContentLoaded", loadEarnings);
+</script>
+{% endblock %}

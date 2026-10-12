@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Wallet{% endblock %}
+{% block bc_page %}Wallet{% endblock %}
+{% block active_page %}wallet{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Billing</div>
+    <div class="page-title">Wallet</div>
+    <div class="page-sub">Manage your credits and payment methods.</div>
+  </div>
+  <div class="page-hd-actions">
+    <button class="btn btn-primary" onclick="openModal('topupModal')">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+      Add Credits
+    </button>
+  </div>
+</div>
+
+<!-- Wallet balance hero -->
+<div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,#0f172a 0%,#0a2f2b 100%);border:none;color:white">
+  <div class="card-body" style="padding:28px 32px">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">Wallet Balance</div>
+        <div style="font-size:42px;font-weight:900;color:white;line-height:1" id="bigBal">₹0.00</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:8px" id="bigCredits">0 AI credits available · 8.5 credits = ₹1</div>
+        <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="openModal('topupModal')" style="background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
+            + Add ₹500
+          </button>
+          <button onclick="openModal('topupModal')" style="background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer">
+            + Add ₹1,000
+          </button>
+          <button onclick="openModal('topupModal')" style="background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer">
+            Custom amount
+          </button>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">This Month</div>
+        <div style="font-size:24px;font-weight:800;color:white" id="monthSpend">₹0.00</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:4px">Total spent</div>
+        <div style="margin-top:14px">
+          <span class="badge" style="background:rgba(13,148,136,.3);color:#6ee7b7;font-size:11px">● Active</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="sg" style="margin-bottom:20px">
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div></div>
+    <div class="scard-label">Total Topped Up</div>
+    <div class="scard-val" id="totalTopup">₹0.00</div>
+    <div class="scard-sub">Lifetime deposits</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon" style="background:#fee2e2;color:#dc2626"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg></div></div>
+    <div class="scard-label">Total Spent</div>
+    <div class="scard-val" id="totalSpent">₹0.00</div>
+    <div class="scard-sub">Lifetime usage</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon" style="background:#dcfce7;color:#16a34a"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757"/></svg></div></div>
+    <div class="scard-label">Total Requests</div>
+    <div class="scard-val" id="totalReqs">0</div>
+    <div class="scard-sub">AI calls made</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top"><div class="scard-icon" style="background:#dbeafe;color:#2563eb"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div></div>
+    <div class="scard-label">Avg. Cost/Request</div>
+    <div class="scard-val" id="avgCost">₹0.00</div>
+    <div class="scard-sub">Per API call</div>
+  </div>
+</div>
+
+<!-- Recent transactions -->
+<div class="card">
+  <div class="card-hd">
+    <div><div class="card-title">Recent Transactions</div><div class="card-sub">Your wallet activity</div></div>
+    <a href="/transactions" class="btn btn-outline btn-sm">View all</a>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Description</th><th>Type</th><th>Amount</th><th>Credits</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="txBody">
+        <tr><td colspan="6"><div class="empty"><div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12"/></svg></div><div class="empty-title">No transactions yet</div><div class="empty-desc">Top up your wallet to get started</div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Top-up modal -->
+<div class="overlay" id="topupModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Add Credits to Wallet</div>
+      <button class="modal-close" onclick="closeModal('topupModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        <div>DEMO MODE — Payment is simulated. No real money will be charged.</div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Select amount</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+          <button type="button" class="btn btn-outline" onclick="setAmt(100)">₹100</button>
+          <button type="button" class="btn btn-outline" onclick="setAmt(500)">₹500</button>
+          <button type="button" class="btn btn-outline" onclick="setAmt(1000)">₹1,000</button>
+          <button type="button" class="btn btn-outline" onclick="setAmt(2000)">₹2,000</button>
+          <button type="button" class="btn btn-outline" onclick="setAmt(5000)">₹5,000</button>
+          <button type="button" class="btn btn-outline" onclick="setAmt(0)">Custom</button>
+        </div>
+        <input type="number" id="topupAmt" class="fc" placeholder="Enter amount in ₹" min="10" max="50000" value="500">
+        <div class="fhint" id="creditCalc">500 × 8.5 = 4,250 credits</div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Payment method</label>
+        <select class="fc fsel" id="payMethod">
+          <option value="UPI">UPI (Simulated)</option>
+          <option value="CARD">Credit/Debit Card (Simulated)</option>
+          <option value="NETBANKING">Net Banking (Simulated)</option>
+        </select>
+      </div>
+      <div id="topupErr" class="alert alert-error" style="display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('topupModal')">Cancel</button>
+      <button class="btn btn-primary" id="payBtn" onclick="doTopup()">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0"/></svg>
+        Pay & Add Credits
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", loadWallet);
+
+async function loadWallet() {
+  try {
+    const d = await ConsumerAPI.wallet();
+    const w = d?.data || d;
+    document.getElementById("bigBal").textContent       = "\u20b9" + Number(w.balance||0).toFixed(2);
+    document.getElementById("bigCredits").textContent   = Number(w.credits||0).toLocaleString("en-IN") + " AI credits available \u00b7 8.5 credits = \u20b91";
+    document.getElementById("monthSpend").textContent   = "\u20b9" + Number(w.month_spend||0).toFixed(2);
+    document.getElementById("totalTopup").textContent   = "\u20b9" + Number(w.total_topup||0).toFixed(2);
+    document.getElementById("totalSpent").textContent   = "\u20b9" + Number(w.total_spent||0).toFixed(2);
+    document.getElementById("totalReqs").textContent    = Number(w.total_requests||0).toLocaleString("en-IN");
+    const avg = w.total_requests > 0 ? (w.total_spent / w.total_requests) : 0;
+    document.getElementById("avgCost").textContent      = "\u20b9" + avg.toFixed(4);
+
+    const txs = w.recent_transactions || [];
+    if (txs.length) {
+      const positiveTypes = ["TOP_UP","REFUND","EARNING"];
+      document.getElementById("txBody").innerHTML = txs.map(t => {
+        const isPos = positiveTypes.includes(t.type);
+        const sign  = isPos ? "+" : "-";
+        const color = isPos ? "#16a34a" : "#dc2626";
+        const badgeCls = isPos ? "badge-green" : t.type==="USAGE" ? "badge-red" : "badge-yellow";
+        const label = {TOP_UP:"TOP UP",USAGE:"USAGE",REFUND:"REFUND",EARNING:"EARNING",PAYOUT:"PAYOUT"}[t.type] || t.type;
+        return `
+        <tr>
+          <td>${escHtml(t.description||t.type)}</td>
+          <td><span class="badge ${badgeCls}">${label}</span></td>
+          <td style="font-weight:600;color:${color}">${sign}\u20b9${Math.abs(Number(t.amount||0)).toFixed(2)}</td>
+          <td>${Number(t.credits||0) !== 0 ? (Number(t.credits)>0?"+":"")+Number(t.credits).toLocaleString("en-IN") : "\u2014"}</td>
+          <td>${sbadge(t.status||"COMPLETED")}</td>
+          <td class="text-muted">${new Date(t.created_at||Date.now()).toLocaleDateString("en-IN",{day:"2-digit",month:"short"})}</td>
+        </tr>`;
+      }).join("");
+    }
+  } catch(e) {
+    // Show error — do NOT fall back to fake data
+    const errHtml = `<div class="alert alert-error" style="margin:16px">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+      <div><strong>Unable to load wallet data.</strong> ${escHtml(e.message||"")} <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="loadWallet()">Retry</button></div>
+    </div>`;
+    document.getElementById("bigBal").innerHTML     = '<span style="font-size:22px;color:#ef4444">Error</span>';
+    document.getElementById("bigCredits").textContent = "Could not load wallet data";
+    document.getElementById("txBody").innerHTML = `<tr><td colspan="6">${errHtml}</td></tr>`;
+  }
+}
+
+function setAmt(v) {
+  if (v) { document.getElementById("topupAmt").value = v; }
+  const amt = Number(document.getElementById("topupAmt").value||0);
+  document.getElementById("creditCalc").textContent = `${amt} × 8.5 = ${(amt*8.5).toLocaleString("en-IN")} credits`;
+}
+document.getElementById("topupAmt").addEventListener("input", () => setAmt(0));
+
+async function doTopup() {
+  const amt = Number(document.getElementById("topupAmt").value);
+  const method = document.getElementById("payMethod").value;
+  const btn = document.getElementById("payBtn");
+  const err = document.getElementById("topupErr");
+  if (!amt || amt < 10) { err.textContent="Minimum top-up is ₹10"; err.style.display="flex"; return; }
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Processing…'; err.style.display="none";
+  try {
+    await ConsumerAPI.topup(amt, method);
+    closeModal("topupModal");
+    toast(`₹${amt} added successfully! +${(amt*8.5).toLocaleString("en-IN")} credits`, "ok");
+    loadWallet();
+  } catch(ex) {
+    err.textContent = ex.message || "Payment failed. Please try again.";
+    err.style.display="flex";
+  } finally { btn.disabled=false; btn.innerHTML='Pay & Add Credits'; }
+}
+
+function escHtml(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+</script>
+{% endblock %}

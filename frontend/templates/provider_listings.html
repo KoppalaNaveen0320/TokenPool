@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% block title %}My Listings{% endblock %}
+{% block bc_page %}My Listings{% endblock %}
+{% block ws_class %}p{% endblock %}
+{% block role_label %}Provider{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section-label">Provider</div>
+<a class="nav-a" href="/provider/dashboard"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 12 2-2m0 0 7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11 2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>Overview</a>
+<a class="nav-a" href="/provider/connections"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>Capacity Sources</a>
+<a class="nav-a active" href="/provider/listings"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36"/></svg>My Listings</a>
+<a class="nav-a" href="/provider/earnings"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Earnings</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Provider</div>
+    <div class="page-title">My Marketplace Listings</div>
+    <div class="page-sub">Create and manage your AI token capacity listings backed by verified provider connections.</div>
+  </div>
+  <div class="page-hd-actions">
+    <button class="btn btn-primary" onclick="openNewListingModal()">+ Create Listing</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd">
+    <div class="card-title">Active Capacity Listings</div>
+    <span class="badge badge-gray" id="listingCount">0</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Capacity Source</th>
+          <th>Connection</th>
+          <th>Price / 1k Tokens</th>
+          <th>Available / Total</th>
+          <th>Sold / Consumed</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="listingBody">
+        <tr><td colspan="9" style="text-align:center;padding:24px"><span class="spinner"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create Listing Modal -->
+<div class="overlay" id="addListingModal">
+  <div class="modal modal-lg">
+    <div class="modal-hd">
+      <div class="modal-title">Create AI Model Capacity Listing</div>
+      <button class="modal-close" onclick="closeModal('addListingModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <!-- No connection alert if needed -->
+      <div id="noConnWarning" class="alert alert-warning" style="display:none;margin-bottom:14px">
+        <strong>No connected capacity source.</strong> You must connect and verify an AI provider credential before creating a marketplace listing.
+        <div style="margin-top:8px">
+          <a href="/provider/connections" class="btn btn-primary btn-sm">+ Connect & Verify AI Provider</a>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+        <!-- AI Model selector -->
+        <div class="fg" style="grid-column:1/-1">
+          <label class="flabel">Select AI Model *</label>
+          <select class="fc fsel" id="lstModel" onchange="onModelSelect()">
+            <option value="">— Loading models… —</option>
+          </select>
+          <span style="font-size:11px;color:var(--slate-400)" id="lstModelHint"></span>
+        </div>
+
+        <!-- Validated Provider Connection Selector -->
+        <div class="fg" style="grid-column:1/-1">
+          <label class="flabel">Capacity Source (Validated Connection) *</label>
+          <select class="fc fsel" id="lstConn" onchange="onConnectionSelect()">
+            <option value="">— Select a validated connection source —</option>
+          </select>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:6px;font-size:11.5px">
+            <span id="connBadgeStatus" class="badge badge-gray">No connection selected</span>
+            <span style="color:var(--slate-500)">Capacity source: <strong id="connSourceLabel">Provider-declared</strong></span>
+            <span style="color:var(--slate-500)">Available marketplace capacity: <strong id="connAvailCap" style="color:var(--teal)">0 tokens</strong></span>
+          </div>
+        </div>
+
+        <!-- Listing Capacity -->
+        <div class="fg">
+          <label class="flabel">Listing Capacity Quantity (Tokens) *</label>
+          <input type="number" id="lstCapacity" class="fc" placeholder="50000" min="100" step="100" value="50000" oninput="validateCapacityAgainstConn()">
+          <span style="font-size:11px;color:var(--slate-400)" id="lstCapHint">Tokens to commit to marketplace listing</span>
+        </div>
+
+        <!-- Price per Credit — automatically determined by model rate -->
+        <div class="fg">
+          <label class="flabel">Price per Unit / Credit (₹)</label>
+          <div style="position:relative">
+            <input type="text" id="lstPriceDisplay" class="fc" readonly style="background:#f8fafc;font-weight:700;color:var(--teal);cursor:default" value="₹0.50 / credit">
+            <span class="badge badge-green" style="position:absolute;right:8px;top:8px;font-size:10px">Server Enforced</span>
+          </div>
+          <input type="hidden" id="lstPricePerUnit" value="0.50">
+          <span style="font-size:11px;color:var(--slate-400)">Standard marketplace model rate</span>
+        </div>
+
+        <!-- Purchase Limits -->
+        <div class="fg">
+          <label class="flabel">Minimum Purchase (credits)</label>
+          <input type="number" id="lstMinPurchase" class="fc" placeholder="100" min="1" value="100">
+        </div>
+        <div class="fg">
+          <label class="flabel">Maximum Purchase (credits)</label>
+          <input type="number" id="lstMaxPurchase" class="fc" placeholder="50000" min="1" value="50000">
+        </div>
+
+        <!-- Payment Details -->
+        <div style="grid-column:1/-1;border-top:1px solid var(--slate-100);padding-top:12px;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:10px">💳 Your Direct Payment Details (Shown to Buyers)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fg">
+              <label class="flabel">Payment Method *</label>
+              <select class="fc fsel" id="lstPayMethod">
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="IMPS">IMPS</option>
+                <option value="NEFT">NEFT</option>
+                <option value="Paytm">Paytm</option>
+                <option value="PhonePe">PhonePe</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="flabel">Payment Identifier (UPI ID / Account No.) *</label>
+              <input type="text" id="lstPayId" class="fc" placeholder="yourname@upi">
+            </div>
+            <div class="fg" style="grid-column:1/-1">
+              <label class="flabel">Payment Instructions (optional)</label>
+              <textarea class="fc" id="lstPayInstructions" rows="2" placeholder="e.g. Please add your TokenPool order ID in the UPI payment note."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:12px;font-size:11.5px">
+        ℹ️ <strong>Capacity Accounting:</strong> Listing capacity is backed by your declared provider capacity. <em>TokenPool verifies the connected credential, but the upstream provider's remaining quota may vary.</em>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addListingModal')">Cancel</button>
+      <button class="btn btn-primary" id="btnPublishListing" onclick="createListing()">Publish Listing</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _aiModels = [];
+let _providerConnections = [];
+
+async function openNewListingModal() {
+  try {
+    const [dModels, dConns] = await Promise.all([
+      AIModelsAPI.list(true),
+      ProviderAPI.connections().catch(() => ({ data: { connections: [] } }))
+    ]);
+    _aiModels = dModels?.data?.models || [];
+    _providerConnections = (dConns?.data?.connections || []).filter(c => c.validation_status === "VALIDATED" && c.status !== "REVOKED" && c.status !== "DISABLED");
+  } catch(e) {
+    _aiModels = [];
+    _providerConnections = [];
+    toast("Could not load AI models or connections.", "warn");
+  }
+
+  // Populate models
+  const selModel = document.getElementById("lstModel");
+  if (_aiModels.length) {
+    selModel.innerHTML = _aiModels.map(m =>
+      `<option value="${escHtml(m.slug)}" data-id="${m.id}" data-ppu="${m.price_per_credit||0.50}" data-unit="${m.capacity_unit||'TOKEN'}" data-badge="${escHtml(m.badge)}" data-name="${escHtml(m.name)}" data-adapter="${escHtml(m.execution_adapter||'')}">${escHtml(m.name)} (${escHtml(m.provider_brand)})</option>`
+    ).join("");
+  } else {
+    selModel.innerHTML = `<option value="">No models available</option>`;
+  }
+
+  // Populate connections
+  const selConn = document.getElementById("lstConn");
+  const noConnAlert = document.getElementById("noConnWarning");
+  const btnPub = document.getElementById("btnPublishListing");
+
+  if (_providerConnections.length) {
+    noConnAlert.style.display = "none";
+    btnPub.disabled = false;
+    selConn.innerHTML = _providerConnections.map(c =>
+      `<option value="${c.id}" data-cap="${c.capacity_remaining||0}" data-dec="${c.capacity_declared||0}" data-type="${escHtml(c.provider_type||'')}">${escHtml(c.provider_name)} (${escHtml(c.credential_masked)}) — ${Number(c.capacity_remaining||0).toLocaleString('en-IN')} tokens available</option>`
+    ).join("");
+    onConnectionSelect();
+  } else {
+    noConnAlert.style.display = "block";
+    selConn.innerHTML = `<option value="">No connected capacity source — connect AI provider first</option>`;
+    document.getElementById("connBadgeStatus").textContent = "No Validated Source";
+    document.getElementById("connBadgeStatus").className = "badge badge-red";
+    document.getElementById("connAvailCap").textContent = "0 tokens";
+    btnPub.disabled = true;
+  }
+
+  onModelSelect();
+  openModal("addListingModal");
+}
+
+function onModelSelect() {
+  const sel = document.getElementById("lstModel");
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const m = _aiModels.find(x => x.slug === opt.value);
+  const ppu = m?.price_per_credit || parseFloat(opt.dataset.ppu) || 0.50;
+  const isDemo = m?.is_demo || (m?.execution_adapter || "mock").toLowerCase() === "mock";
+
+  document.getElementById("lstPriceDisplay").value = `₹${Number(ppu).toFixed(2)} / credit`;
+  document.getElementById("lstPricePerUnit").value  = Number(ppu).toFixed(2);
+  document.getElementById("lstModelHint").innerHTML =
+    m ? `${m.description} · Latency: ${m.latency_label} · Context: ${m.context_window}${isDemo ? ' <span style="background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-left:6px">DEMO</span>' : ' <span style="background:#d1fae5;color:#065f46;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-left:6px">LIVE</span>'}` : "";
+}
+
+function onConnectionSelect() {
+  const sel = document.getElementById("lstConn");
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const c = _providerConnections.find(x => String(x.id) === String(opt.value));
+  if (!c) return;
+
+  const rem = c.capacity_remaining !== undefined ? c.capacity_remaining : (c.capacity_declared || 0);
+  document.getElementById("connBadgeStatus").textContent = "✓ Validated";
+  document.getElementById("connBadgeStatus").className = "badge badge-green";
+  document.getElementById("connSourceLabel").textContent = "Provider-declared";
+  document.getElementById("connAvailCap").textContent = `${Number(rem).toLocaleString('en-IN')} tokens`;
+
+  const capInput = document.getElementById("lstCapacity");
+  capInput.max = rem;
+  if (parseInt(capInput.value) > rem) {
+    capInput.value = rem > 0 ? Math.min(50000, rem) : 0;
+  }
+  validateCapacityAgainstConn();
+}
+
+function validateCapacityAgainstConn() {
+  const sel = document.getElementById("lstConn");
+  const opt = sel?.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const c = _providerConnections.find(x => String(x.id) === String(opt.value));
+  if (c) {
+    const rem = c.capacity_remaining !== undefined ? c.capacity_remaining : (c.capacity_declared || 0);
+    const entered = parseInt(document.getElementById("lstCapacity").value) || 0;
+    if (entered > rem) {
+      document.getElementById("lstCapacity").style.borderColor = "#ef4444";
+      document.getElementById("lstCapHint").innerHTML = `<span style="color:#ef4444">Exceeds available marketplace capacity (${rem.toLocaleString("en-IN")} remaining)</span>`;
+    } else {
+      document.getElementById("lstCapacity").style.borderColor = "";
+      document.getElementById("lstCapHint").textContent = `Tokens to commit to marketplace listing (Max: ${rem.toLocaleString("en-IN")})`;
+    }
+  }
+}
+
+async function createListing() {
+  const model    = document.getElementById("lstModel").value;
+  const connId   = document.getElementById("lstConn").value;
+  const cap      = document.getElementById("lstCapacity").value;
+  const minP     = document.getElementById("lstMinPurchase").value;
+  const maxP     = document.getElementById("lstMaxPurchase").value;
+  const payM     = document.getElementById("lstPayMethod").value;
+  const payId    = document.getElementById("lstPayId").value.trim();
+  const payInstr = document.getElementById("lstPayInstructions").value.trim();
+
+  if (!model) { toast("Please select an AI Model.", "warn"); return; }
+  if (!connId && !_providerConnections.length) {
+    toast("No connected capacity source. Connect and verify an AI provider before creating a listing.", "err");
+    return;
+  }
+
+  const creditsNum = parseInt(cap);
+  if (!creditsNum || creditsNum <= 0) { toast("Please enter valid listing capacity.", "warn"); return; }
+  if (!payId) { toast("Please enter your payment identifier (e.g. UPI ID).", "warn"); return; }
+
+  const sel = document.getElementById("lstConn");
+  const opt = sel.options[sel.selectedIndex];
+  const c = _providerConnections.find(x => String(x.id) === String(connId));
+
+  if (c && c.capacity_remaining !== undefined && creditsNum > c.capacity_remaining) {
+    toast(`Capacity exceeds your available declared capacity (${c.capacity_remaining.toLocaleString("en-IN")} tokens available).`, "err");
+    return;
+  }
+
+  const m = _aiModels.find(x => x.slug === model);
+
+  try {
+    await ProviderAPI.createListing({
+      model_slug: model,
+      model_id: m?.id,
+      connection_id: c ? c.id : null,
+      available_credits: creditsNum,
+      daily_capacity: creditsNum,
+      min_purchase: parseInt(minP) || 100,
+      max_purchase: parseInt(maxP) || 50000,
+      payment_method: payM,
+      payment_identifier: payId,
+      payment_instructions: payInstr || null,
+    });
+    closeModal("addListingModal");
+    toast("AI Model Capacity listing published successfully!", "ok");
+    loadListings();
+  } catch(e) {
+    toast(e.message || "Failed to create listing. Please try again.", "err");
+  }
+}
+
+async function loadListings() {
+  document.getElementById("listingBody").innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px"><span class="spinner"></span></td></tr>`;
+  try {
+    const d  = await ProviderAPI.listings();
+    const ls = d?.data?.listings || d?.data || d?.listings || [];
+    document.getElementById("listingCount").textContent = ls.length;
+    if (ls.length) {
+      document.getElementById("listingBody").innerHTML = ls.map(l => `
+        <tr>
+          <td>
+            <div class="mb-cell">
+              <div class="m-av" style="background:#0d9488">${escHtml((l.model_slug||'N')[0].toUpperCase())}</div>
+              <div>
+                <strong>${escHtml(l.model_name||l.model_slug||'')}</strong>
+                <div style="font-size:11px;color:#94a3b8">${escHtml(l.period_type||'MONTHLY')} · ${escHtml(l.capacity_unit||'TOKEN')}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge ${l.provider_connection_id ? 'badge-blue' : 'badge-gray'}">
+              ${escHtml(l.capacity_source || 'Provider declared')}
+            </span>
+          </td>
+          <td>
+            ${l.connection_verified ? '<span class="badge badge-green">✓ Validated</span>' : '<span class="badge badge-yellow">Unverified</span>'}
+          </td>
+          <td>₹${Number(l.price_per_1k_input||0).toFixed(3)} / ₹${Number(l.price_per_1k_output||0).toFixed(3)}</td>
+          <td><strong>${Number(l.remaining_capacity !== undefined ? l.remaining_capacity : l.capacity_units||0).toLocaleString("en-IN")}</strong> / ${Number(l.total_capacity||l.capacity_units||0).toLocaleString("en-IN")}</td>
+          <td>
+            <span style="color:var(--blue)">${Number(l.sold_capacity||0).toLocaleString("en-IN")} sold</span> · 
+            <span style="color:var(--teal)">${Number(l.consumed_capacity||0).toLocaleString("en-IN")} used</span>
+          </td>
+          <td><code>${escHtml(l.payment_identifier || l.payment_method || 'UPI')}</code></td>
+          <td>${sbadge(l.status||"ACTIVE")}</td>
+          <td>
+            <div style="display:flex;gap:4px">
+              <button class="row-btn" title="${l.status==='ACTIVE'?'Pause':'Activate'}" onclick="toggleListing('${l.id}','${l.status==='ACTIVE'?'PAUSED':'ACTIVE'}')">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="${l.status==='ACTIVE'?'M15.75 5.25v13.5m-7.5-13.5v13.5':'M5.25 5.082A.75.75 0 0 1 6 5.25l13.5 6.75-13.5 6.75A.75.75 0 0 1 5.25 18V6a.75.75 0 0 1 0-.918Z'}"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>`).join("");
+    } else {
+      document.getElementById("listingBody").innerHTML = `<tr><td colspan="9"><div class="empty">
+        <div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36"/></svg></div>
+        <div class="empty-title">No listings yet</div>
+        <div class="empty-desc">Create a listing to offer your AI token capacity on the marketplace</div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="openNewListingModal()">Create First Listing</button>
+      </div></td></tr>`;
+    }
+  } catch(e) {
+    document.getElementById("listingCount").textContent = "0";
+    document.getElementById("listingBody").innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#94a3b8">${escHtml(e.message||"Could not load listings.")}</td></tr>`;
+  }
+}
+
+async function toggleListing(id, newStatus) {
+  try {
+    await ProviderAPI.toggleListing(id, newStatus);
+    toast("Listing " + (newStatus === "ACTIVE" ? "activated" : "paused") + ".", "ok");
+    loadListings();
+  } catch(e) {
+    toast(e.message || "Failed to update listing.", "err");
+  }
+}
+
+function escHtml(s) { return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+document.addEventListener("DOMContentLoaded", loadListings);
+</script>
+{% endblock %}

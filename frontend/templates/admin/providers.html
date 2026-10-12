@@ -1,0 +1,144 @@
+{% extends "admin/dashboard.html" %}
+{% block title %}Provider Capacity Sources — Admin{% endblock %}
+{% block bc_page %}Provider Connections{% endblock %}
+{% block active_page %}admin_providers{% endblock %}
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Admin Operations</div>
+    <div class="page-title">Provider Capacity Sources & Connections</div>
+    <div class="page-sub">Audit authorized AI connections, monitor declared capacity vs usage, and disable suspicious sources.</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;border-left:4px solid var(--teal)">
+  <div class="card-body" style="font-size:12.5px;color:var(--slate-600);line-height:1.5">
+    <strong>Admin Governance Architecture:</strong> Admin no longer fabricates or manually allocates token pools to providers. Providers connect their authorized AI provider credentials directly and declare their marketplace capacity commitments. Admin inspects validation status, reviews capacity accounting, and disables fraudulent or compromised credentials.
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="card-title">Authorized Provider Connections</div>
+    <button class="btn btn-outline btn-sm" onclick="loadAdminConnections()">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      Refresh
+    </button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Provider / Gmail</th>
+          <th>AI Service</th>
+          <th>AI Account Email</th>
+          <th>Identity Status</th>
+          <th>Auth Status</th>
+          <th>Marketplace Status</th>
+          <th>Declared</th>
+          <th>Consumed</th>
+          <th>Remaining</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="admConnsBody">
+        <tr><td colspan="11" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+async function loadAdminConnections() {
+  const tbody = document.getElementById("admConnsBody");
+  tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>`;
+  try {
+    const res = await apiRequest("/admin/provider-connections");
+    const conns = res?.data?.connections || [];
+    if (!conns.length) {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:28px;color:var(--slate-400)">No provider connections registered yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = conns.map(c => {
+      const isValid = c.validation_status === 'VALIDATED';
+      const isFailed = c.validation_status === 'FAILED';
+      const isRevoked = c.validation_status === 'REVOKED';
+      const isDisabled = c.validation_status === 'DISABLED';
+
+      let badgeClass = 'badge-yellow';
+      if (isValid) badgeClass = 'badge-green';
+      else if (isFailed || isDisabled || isRevoked) badgeClass = 'badge-red';
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-weight:700">#${c.id}</td>
+          <td>
+            <div style="font-weight:600;color:var(--slate-800)">${escHtml(c.provider_name || 'Provider')}</div>
+            <div style="font-size:11px;color:var(--teal)">${escHtml(c.provider_email || '')}</div>
+          </td>
+          <td>
+            <div style="font-weight:700;text-transform:uppercase">${escHtml(c.provider_type || c.provider || '')}</div>
+            <div style="font-size:11px;color:var(--slate-400)">Plan: ${escHtml(c.plan_name || 'Unable to verify')}</div>
+          </td>
+          <td>
+            <code style="font-size:11px">${escHtml(c.account_email || '—')}</code>
+          </td>
+          <td>
+            <span class="badge ${c.identity_status === 'IDENTITY_MATCHED' ? 'badge-green' : 'badge-yellow'}" style="font-size:10px">
+              ${escHtml(c.identity_status || 'PENDING')}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${c.authorization_status === 'AUTHORIZED' ? 'badge-green' : 'badge-yellow'}" style="font-size:10px">
+              ${escHtml(c.authorization_status || 'NOT_AUTH')}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${c.marketplace_status === 'ELIGIBLE' ? 'badge-green' : 'badge-yellow'}" style="font-size:10px" title="${escHtml(c.marketplace_reason || '')}">
+              ${escHtml(c.marketplace_status || 'NOT_ELIGIBLE')}
+            </span>
+          </td>
+          <td style="font-weight:700">${Number(c.capacity_declared||0).toLocaleString('en-IN')}</td>
+          <td style="color:var(--slate-600)">${Number(c.capacity_consumed||0).toLocaleString('en-IN')}</td>
+          <td style="font-weight:700;color:var(--teal)">${Number(c.capacity_remaining||0).toLocaleString('en-IN')}</td>
+          <td>
+            ${isDisabled ? `
+              <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px" onclick="toggleConnStatus(${c.id}, 'VALIDATED')">
+                Re-enable
+              </button>
+            ` : `
+              <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px;color:#ef4444;border-color:#fca5a5" onclick="toggleConnStatus(${c.id}, 'DISABLED')">
+                Disable
+              </button>
+            `}
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:#ef4444">Failed to load connections: ${escHtml(err.message||'Error')}</td></tr>`;
+  }
+}
+
+async function toggleConnStatus(connId, newStatus) {
+  if (!confirm(`Are you sure you want to change connection #${connId} status to ${newStatus}?`)) return;
+  try {
+    await apiRequest(`/admin/provider-connections/${connId}/status?new_status=${newStatus}`, { method: "PATCH" });
+    alert(`Connection status updated to ${newStatus}.`);
+    loadAdminConnections();
+  } catch (err) {
+    alert("Status update failed: " + (err.message || 'Error'));
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadAdminConnections();
+});
+</script>
+{% endblock %}

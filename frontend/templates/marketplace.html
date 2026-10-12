@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+{% block title %}Marketplace{% endblock %}
+{% block bc_page %}Marketplace{% endblock %}
+{% block active_page %}marketplace{% endblock %}
+
+{% block head_extra %}
+<style>
+  .mkt-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .mkt-card { background: white; border: 1px solid var(--slate-200); border-radius: 14px; padding: 18px; transition: box-shadow .15s, transform .15s; cursor: pointer; }
+  .mkt-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .mkt-card.selected { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.12); }
+  .mkt-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .mkt-av { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; }
+  .mkt-name { font-size: 14px; font-weight: 700; color: var(--slate-900); }
+  .mkt-brand { font-size: 11.5px; color: var(--slate-400); margin-top: 1px; }
+  .mkt-desc { font-size: 12.5px; color: var(--slate-500); line-height: 1.5; margin-bottom: 14px; }
+  .mkt-prices { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mkt-price { font-size: 11px; background: var(--slate-50); border-radius: 5px; padding: 4px 8px; color: var(--slate-600); }
+  .mkt-price span { font-weight: 700; color: var(--teal); }
+  .mkt-meta { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--slate-100); font-size: 11px; color: var(--slate-400); }
+  .mkt-meta-item { display: flex; align-items: center; gap: 4px; }
+  .mkt-meta-item svg { width: 11px; height: 11px; }
+  .mkt-use-btn { margin-left: auto; }
+  .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ftab { padding: 5px 13px; font-size: 12px; font-weight: 600; border: 1px solid var(--slate-200); border-radius: 20px; color: var(--slate-600); cursor: pointer; background: white; transition: all .15s; }
+  .ftab.active { background: var(--teal); color: white; border-color: var(--teal); }
+  @media(max-width:900px) { .mkt-grid { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:600px) { .mkt-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">AI Marketplace</div>
+    <div class="page-title">Browse AI Models</div>
+    <div class="page-sub">Choose from available AI models and start using them with your credits.</div>
+  </div>
+  <div class="page-hd-actions">
+    <a href="/orders" class="btn btn-outline">My Orders</a>
+    <a href="/wallet" class="btn btn-outline">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9"/></svg>
+      <span id="walletBal">Top Up</span>
+    </a>
+    <a href="/chat" class="btn btn-primary">Start Chatting →</a>
+  </div>
+</div>
+
+<!-- Buy Credits Modal -->
+<div class="overlay" id="buyCreditsModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Buy AI Credits</div>
+        <div style="font-size:11.5px;color:var(--slate-400)" id="bcListingName">Direct Seller Purchase</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('buyCreditsModal')">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="bcListingId">
+      <input type="hidden" id="bcPricePerUnit" value="0.5">
+
+      <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--slate-500)">Rate per Credit:</span>
+          <strong id="bcRate">₹0.50</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--slate-500)">Source Type:</span>
+          <span class="badge badge-blue" style="font-size:10.5px" id="bcSourceType">Provider-Supplied</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--slate-500)">Connection:</span>
+          <span class="badge badge-green" style="font-size:10.5px" id="bcConnVerified">✓ Connection Verified</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--slate-500)">Capacity Source:</span>
+          <strong style="color:var(--slate-700);font-size:12px" id="bcCapSource">Provider-Declared Capacity</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--slate-500)">Available Marketplace Capacity:</span>
+          <strong id="bcAvail" style="color:var(--teal)">10,000 units</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:12px;color:var(--slate-500)">Payment Method:</span>
+          <strong id="bcMethod">UPI</strong>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--slate-500);background:#f8fafc;border:1px solid var(--slate-200);border-radius:6px;padding:8px 10px;margin-bottom:14px">
+        ℹ️ <strong>Note:</strong> TokenPool verifies the connected credential, but the upstream provider's remaining quota may vary.
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Quantity of Credits *</label>
+        <input type="number" class="fc" id="bcQty" min="10" max="100000" value="1000" oninput="calcBcTotal()">
+        <span style="font-size:11px;color:var(--slate-400)" id="bcMinMaxHint">Min: 100, Max: 50,000</span>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:8px;margin-top:14px">
+        <span style="font-size:13px;font-weight:600;color:var(--teal-dark)">Server-Calculated Total:</span>
+        <span style="font-size:18px;font-weight:800;color:var(--teal)" id="bcTotal">₹500.00</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('buyCreditsModal')">Cancel</button>
+      <button class="btn btn-primary" id="btnConfirmBuyOrder" onclick="submitBuyOrder()">
+        Create Buy Order →
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Filter bar -->
+<div class="card" style="margin-bottom:18px">
+  <div class="card-body" style="padding:14px 18px">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div class="srch" style="flex:1;min-width:200px">
+        <svg class="srch-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="search" class="srch-input" id="mktSearch" placeholder="Search models, providers…" oninput="filterCards()">
+      </div>
+      <div class="filter-tabs" id="filterTabs">
+        <button class="ftab active" data-filter="all" onclick="setFilter('all',this)">All Models</button>
+        <button class="ftab" data-filter="fast" onclick="setFilter('fast',this)">⚡ Fast</button>
+        <button class="ftab" data-filter="reasoning" onclick="setFilter('reasoning',this)">🧠 Reasoning</button>
+        <button class="ftab" data-filter="coding" onclick="setFilter('coding',this)">💻 Coding</button>
+        <button class="ftab" data-filter="multimodal" onclick="setFilter('multimodal',this)">🎨 Multimodal</button>
+      </div>
+      <select class="fc fsel" style="width:auto" onchange="filterCards()">
+        <option value="">Sort: Featured</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="fastest">Fastest</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Model grid -->
+<!-- Loading state -->
+<div id="mktLoading" style="grid-column:1/-1;text-align:center;padding:40px"><span class="spinner"></span></div>
+
+<div class="mkt-grid" id="mktGrid" style="display:none">
+  <!-- Cards injected by JS -->
+</div>
+
+<!-- Error state -->
+<div id="mktError" style="display:none;margin-top:16px">
+  <div class="alert alert-error">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <div><strong>Unable to load marketplace.</strong> <span id="mktErrMsg"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:12px" onclick="loadMarketplace()">Retry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Model detail modal -->
+<div class="overlay" id="modelModal">
+  <div class="modal modal-lg">
+    <div class="modal-hd">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="mkt-av" id="mmAv" style="background:#64748b;width:36px;height:36px;font-size:14px">?</div>
+        <div><div class="modal-title" id="mmName">AI Model</div><div style="font-size:11.5px;color:#94a3b8" id="mmBrand"></div></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modelModal')">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+        <div class="scard" style="border:1px solid var(--slate-200)"><div class="scard-label">Input Price</div><div class="scard-val" id="mmIn">₹0.08/1k</div></div>
+        <div class="scard" style="border:1px solid var(--slate-200)"><div class="scard-label">Output Price</div><div class="scard-val" id="mmOut">₹0.15/1k</div></div>
+        <div class="scard" style="border:1px solid var(--slate-200)"><div class="scard-label">Avg. Latency</div><div class="scard-val" id="mmLat">642ms</div></div>
+        <div class="scard" style="border:1px solid var(--slate-200)"><div class="scard-label">Context Window</div><div class="scard-val" id="mmCtx">128k</div></div>
+      </div>
+      <div class="fg"><div class="flabel">Description</div><p id="mmDesc" style="font-size:13px;color:#475569;line-height:1.65"></p></div>
+      <div class="fg"><div class="flabel">Capabilities</div><div id="mmCaps" style="display:flex;gap:7px;flex-wrap:wrap"></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modelModal')">Close</button>
+      <button class="btn btn-outline" id="mmBuyBtn" onclick="openBuyCreditsModal()" style="border-color:var(--teal);color:var(--teal)">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0v8.25m0 0a60.07 60.07 0 0 0 15.797 2.101c.727.198 1.453-.342 1.453-1.096V14.25m-15.797 0h15.797"/></svg>
+        Buy Credits Directly
+      </button>
+      <a href="/chat" class="btn btn-primary" id="mmUseBtn">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+        Use this model
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _allModels = [];
+let activeFilter = "all";
+const BADGE_COLORS = {N:"#0d9488",S:"#2563eb",A:"#7c3aed",V:"#d97706",C:"#dc2626",G:"#16a34a",O:"#f59e0b",E:"#8b5cf6",R:"#0891b2",M:"#64748b"};
+
+function mcol(badge) { return BADGE_COLORS[(badge||"N").toUpperCase()] || "#64748b"; }
+function escHtml(s) { return (s||"TP").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function renderCards(models) {
+  const grid = document.getElementById("mktGrid");
+  if (!models.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1"><div class="empty">
+      <div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36"/></svg></div>
+      <div class="empty-title">No AI capacity available yet</div>
+      <div class="empty-desc">No listings match your current filters. Try broadening your search.</div>
+    </div></div>`;
+    return;
+  }
+  grid.innerHTML = models.map(m => `
+    <div class="mkt-card" onclick="openDetail(${m.id||0}, this)" data-id="${m.id||0}" data-tags="${escHtml((m.capabilities||m.tags||'').toString().toLowerCase())}" data-name="${escHtml((m.name||'').toLowerCase())}" data-brand="${escHtml((m.provider||m.brand||'').toLowerCase())}" data-price="${m.input_price_per_1k||0}">
+      <div class="mkt-card-top">
+        <div class="mkt-av" style="background:${mcol(m.badge)}">${escHtml(m.badge||'?')}</div>
+        <div><div class="mkt-name">${escHtml(m.name)}</div><div class="mkt-brand">${escHtml(m.provider||m.brand||'')}</div></div>
+        <div style="margin-left:auto;display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          ${m.is_demo 
+            ? '<span class="badge badge-yellow" style="font-size:9px">DEMO</span>' 
+            : '<span class="badge badge-blue" style="font-size:9px">Provider-Supplied</span><span class="badge badge-green" style="font-size:9px">✓ Connection Verified</span>'}
+          <span class="badge badge-${m.status==='AVAILABLE'?'green':m.status==='LIMITED'?'yellow':'gray'}" style="font-size:9px">${escHtml(m.status||'')}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--slate-500);margin-bottom:8px">
+        ${m.is_demo ? '⚡ Demo Test Capacity' : '📦 Capacity source: <strong>Provider-declared</strong>'}
+      </div>
+      <div class="mkt-desc">${escHtml((m.description||'').slice(0,100))}${(m.description||'').length>100?'\u2026':''}</div>
+      <div class="mkt-prices">
+        <div class="mkt-price">Input <span>${escHtml(m.in_price||'')}</span></div>
+        <div class="mkt-price">Output <span>${escHtml(m.out_price||'')}</span></div>
+      </div>
+      <div class="mkt-meta">
+        <div class="mkt-meta-item"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>${escHtml(m.latency||m.lat||'')}</div>
+        <div class="mkt-meta-item"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z"/></svg>${escHtml(m.context_window||'')}</div>
+      </div>
+    </div>`).join("");
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll(".ftab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  filterCards();
+}
+
+function filterCards() {
+  const q = (document.getElementById("mktSearch").value||"").toLowerCase();
+  const filtered = _allModels.filter(m => {
+    const tags    = (m.capabilities||m.tags||"").toString().toLowerCase();
+    const matchF  = activeFilter === "all" || tags.includes(activeFilter);
+    const matchQ  = !q || (m.name||'').toLowerCase().includes(q) || (m.provider||m.brand||"").toLowerCase().includes(q);
+    return matchF && matchQ;
+  });
+  renderCards(filtered);
+}
+
+let _currentModel = null;
+let _providerListings = [];
+
+function openDetail(id, card) {
+  const m = _allModels.find(x => (x.id||0) === id || x.slug === id);
+  if (!m) return;
+  _currentModel = m;
+  document.getElementById("mmAv").textContent = m.badge||'?';
+  document.getElementById("mmAv").style.background = mcol(m.badge);
+  document.getElementById("mmName").textContent = m.name||'';
+  document.getElementById("mmBrand").textContent = m.provider||m.brand||'';
+  document.getElementById("mmIn").textContent = m.in_price||'';
+  document.getElementById("mmOut").textContent = m.out_price||'';
+  document.getElementById("mmLat").textContent = m.latency||m.lat||'';
+  document.getElementById("mmCtx").textContent = m.context_window||'';
+  document.getElementById("mmDesc").textContent = m.description||'';
+  const caps = (m.capabilities||'').toString().split(',').filter(Boolean);
+  document.getElementById("mmCaps").innerHTML = caps.map(c => `<span class="badge badge-gray">${escHtml(c.trim())}</span>`).join("");
+  document.getElementById("mmUseBtn").href = `/chat?model=${encodeURIComponent(m.slug||m.id||'')}`;
+  openModal("modelModal");
+}
+
+async function openBuyCreditsModal() {
+  try {
+    const res = await ProviderAPI.allListings();
+    _providerListings = res?.data?.listings || [];
+  } catch(e) {
+    _providerListings = [];
+  }
+  let listing = _providerListings.find(l => l.model_slug === _currentModel?.slug || l.model_name === _currentModel?.name) || _providerListings[0];
+  if (!listing) {
+    alert("No active provider listings available right now. Check back soon!");
+    return;
+  }
+  document.getElementById("bcListingId").value = listing.id;
+  document.getElementById("bcPricePerUnit").value = listing.price_per_unit || 0.50;
+  document.getElementById("bcListingName").textContent = `${listing.model_name} (Provider #${listing.provider_id})`;
+  document.getElementById("bcRate").textContent = `₹${Number(listing.price_per_unit || 0.50).toFixed(2)} / credit`;
+  document.getElementById("bcAvail").textContent = `${Number(listing.available_capacity || 0).toLocaleString('en-IN')} units`;
+  document.getElementById("bcMethod").textContent = listing.payment_method || 'UPI';
+
+  const isDemo = listing.is_demo || _currentModel?.is_demo;
+  document.getElementById("bcSourceType").textContent = isDemo ? "Demo Pool" : "Provider-Supplied";
+  document.getElementById("bcSourceType").className = isDemo ? "badge badge-yellow" : "badge badge-blue";
+  document.getElementById("bcConnVerified").textContent = isDemo ? "Mock Sandbox" : (listing.connection_verified !== false ? "✓ Connection Verified" : "Pending");
+  document.getElementById("bcCapSource").textContent = isDemo ? "Internal Demo Sandbox" : "Provider-Declared Capacity";
+  
+  const minP = listing.min_purchase || 100;
+  const maxP = Math.min(listing.max_purchase || 50000, listing.available_capacity || 50000);
+  const qtyInput = document.getElementById("bcQty");
+  qtyInput.min = minP;
+  qtyInput.max = maxP;
+  qtyInput.value = minP;
+  document.getElementById("bcMinMaxHint").textContent = `Min: ${minP.toLocaleString('en-IN')}, Max: ${maxP.toLocaleString('en-IN')}`;
+
+  calcBcTotal();
+  closeModal('modelModal');
+  openModal('buyCreditsModal');
+}
+
+function calcBcTotal() {
+  const rate = Number(document.getElementById("bcPricePerUnit").value || 0.50);
+  const qty = Number(document.getElementById("bcQty").value || 0);
+  const total = qty * rate;
+  document.getElementById("bcTotal").textContent = `₹${total.toFixed(2)}`;
+}
+
+async function submitBuyOrder() {
+  const listingId = Number(document.getElementById("bcListingId").value);
+  const qty = Number(document.getElementById("bcQty").value);
+  const btn = document.getElementById("btnConfirmBuyOrder");
+
+  if (!listingId || !qty || qty <= 0) {
+    alert("Please select a valid quantity of credits.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Creating Order...";
+  try {
+    const res = await OrdersAPI.create(listingId, qty);
+    const order = res?.data || {};
+    closeModal('buyCreditsModal');
+    // Navigate straight to buyer order page with payment instructions
+    window.location.href = `/orders?order_id=${encodeURIComponent(order.order_id || '')}`;
+
+  } catch (err) {
+    alert("Order creation failed: " + (err.message || "Error"));
+    btn.disabled = false;
+    btn.textContent = "Create Buy Order →";
+  }
+}
+
+async function loadMarketplace() {
+  document.getElementById("mktLoading").style.display = "block";
+  document.getElementById("mktGrid").style.display    = "none";
+  document.getElementById("mktError").style.display   = "none";
+  try {
+    const d = await ConsumerAPI.marketplace();
+    _allModels = d?.data?.models || d?.models || [];
+    document.getElementById("mktLoading").style.display = "none";
+    document.getElementById("mktGrid").style.display    = "grid";
+    filterCards();
+  } catch(e) {
+    document.getElementById("mktLoading").style.display = "none";
+    document.getElementById("mktError").style.display   = "block";
+    document.getElementById("mktErrMsg").textContent    = e.message || "";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadMarketplace();
+  ConsumerAPI.wallet().then(d => {
+    const w = d?.data || d;
+    const bal = Number(w.balance||0);
+    document.getElementById("walletBal").textContent = "\u20b9" + bal.toFixed(2);
+  }).catch(() => { document.getElementById("walletBal").textContent = "Top Up"; });
+});
+</script>
+
+{% endblock %}

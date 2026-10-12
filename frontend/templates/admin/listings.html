@@ -1,0 +1,91 @@
+{% extends "admin/dashboard.html" %}
+{% block title %}Listings Oversight — Admin{% endblock %}
+{% block bc_page %}Listings{% endblock %}
+{% block active_page %}admin_listings{% endblock %}
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Admin Oversight</div>
+    <div class="page-title">Marketplace Listings</div>
+    <div class="page-sub">Monitor all active and paused provider AI model listings across TokenPool.</div>
+  </div>
+  <div class="page-hd-actions">
+    <button class="btn btn-outline btn-sm" onclick="loadAdminListings()">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="card-title">All Marketplace Listings</div>
+    <span class="badge badge-gray" id="admLstCount">Loading…</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Listing ID</th>
+          <th>Model</th>
+          <th>Provider ID</th>
+          <th>Capacity (Tokens)</th>
+          <th>Price / 1k In/Out</th>
+          <th>Min Purchase</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody id="admLstBody">
+        <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+async function loadAdminListings() {
+  const tbody = document.getElementById("admLstBody");
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>`;
+  try {
+    const res = await apiRequest("/admin/listings");
+    const listings = res?.data?.listings || [];
+    document.getElementById("admLstCount").textContent = `${listings.length} listing(s)`;
+    if (!listings.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--slate-400)">No marketplace listings found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = listings.map(l => {
+      const isActive = l.status === "ACTIVE";
+      return `
+        <tr>
+          <td style="font-family:monospace;font-weight:700">#${l.id}</td>
+          <td>
+            <div style="font-weight:600;color:var(--slate-900)">${escHtml(l.model_name || l.model_slug)}</div>
+            <div style="font-size:11px;color:var(--slate-400)">${escHtml(l.model_slug)}</div>
+          </td>
+          <td><span class="badge badge-blue">Provider #${l.provider_id}</span></td>
+          <td style="font-weight:700;color:var(--teal)">${Number(l.capacity_units||0).toLocaleString('en-IN')}</td>
+          <td>₹${Number(l.price_input||0).toFixed(3)} / ₹${Number(l.price_output||0).toFixed(3)}</td>
+          <td>${Number(l.min_purchase||0).toLocaleString('en-IN')}</td>
+          <td>
+            <span class="badge ${isActive ? 'badge-green' : 'badge-yellow'}">${escHtml(l.status)}</span>
+          </td>
+          <td style="font-size:11.5px;color:var(--slate-400)">${new Date(l.created_at).toLocaleDateString('en-IN')}</td>
+        </tr>
+      `;
+    }).join("");
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#ef4444">Failed to load listings: ${escHtml(err.message||'Error')}</td></tr>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadAdminListings();
+});
+</script>
+{% endblock %}

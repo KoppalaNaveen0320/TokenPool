@@ -1,0 +1,93 @@
+{% extends "admin/dashboard.html" %}
+{% block title %}Platform Transactions — Admin{% endblock %}
+{% block bc_page %}Transactions{% endblock %}
+{% block active_page %}admin_transactions{% endblock %}
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Financial Oversight</div>
+    <div class="page-title">Platform Transactions</div>
+    <div class="page-sub">Audit all wallet top-ups, usage deductions, and credit movements in real time.</div>
+  </div>
+  <div class="page-hd-actions">
+    <button class="btn btn-outline btn-sm" onclick="loadAdminTransactions()">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="card-title">All Wallet Transactions</div>
+    <span class="badge badge-gray" id="admTxCount">Loading…</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tx ID</th>
+          <th>Wallet ID</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Balance After</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="admTxBody">
+        <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+async function loadAdminTransactions() {
+  const tbody = document.getElementById("admTxBody");
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--slate-400)"><span class="spinner"></span></td></tr>`;
+  try {
+    const res = await apiRequest("/admin/transactions?limit=50");
+    const txs = res?.data?.transactions || [];
+    document.getElementById("admTxCount").textContent = `${res?.data?.total || txs.length} transaction(s)`;
+    if (!txs.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--slate-400)">No transactions found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = txs.map(t => {
+      const isCredit = Number(t.amount) > 0;
+      const isCompleted = t.status === "COMPLETED";
+      return `
+        <tr>
+          <td style="font-family:monospace;font-weight:700">#${t.id}</td>
+          <td>Wallet #${t.wallet_id}</td>
+          <td>
+            <span class="badge ${t.type === 'TOP_UP' ? 'badge-green' : t.type === 'USAGE' ? 'badge-blue' : 'badge-gray'}">${escHtml(t.type)}</span>
+          </td>
+          <td style="font-weight:700;color:${isCredit ? '#059669' : '#dc2626'}">
+            ${isCredit ? '+' : ''}₹${Math.abs(Number(t.amount)).toFixed(4)}
+          </td>
+          <td style="font-weight:600">₹${Number(t.balance_after||0).toFixed(2)}</td>
+          <td style="max-width:240px;font-size:12px;color:var(--slate-600)">${escHtml(t.description||'—')}</td>
+          <td>
+            <span class="badge ${isCompleted ? 'badge-green' : 'badge-yellow'}">${escHtml(t.status)}</span>
+          </td>
+          <td style="font-size:11.5px;color:var(--slate-400)">${new Date(t.created_at).toLocaleString('en-IN')}</td>
+        </tr>
+      `;
+    }).join("");
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#ef4444">Failed to load transactions: ${escHtml(err.message||'Error')}</td></tr>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadAdminTransactions();
+});
+</script>
+{% endblock %}

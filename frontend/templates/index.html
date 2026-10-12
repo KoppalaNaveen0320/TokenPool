@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenPool — AI Usage Marketplace</title>
+  <meta name="description" content="TokenPool is the premier AI Usage Marketplace. Buy and sell AI capacity from authorized providers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body{background:#fff}
+    /* HERO */
+    .hero{padding:130px 0 80px;text-align:center;background:linear-gradient(160deg,#f0fdfa 0%,#fff 60%);position:relative;overflow:hidden}
+    .hero::before{content:"";position:absolute;top:-180px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(13,148,136,.07) 0%,transparent 70%);pointer-events:none}
+    .lp-cont{max-width:1100px;margin:0 auto;padding:0 32px}
+    .chip{display:inline-flex;align-items:center;gap:6px;background:#ccfbf1;color:#0f766e;font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:5px 13px;border-radius:99px;margin-bottom:24px}
+    .chip svg{width:12px;height:12px}
+    .h1{font-size:clamp(36px,6vw,62px);font-weight:900;color:#0f172a;line-height:1.05;letter-spacing:-1.5px;margin-bottom:18px;max-width:760px;margin-left:auto;margin-right:auto}
+    .h1 span{color:#0d9488}
+    .sub{font-size:17px;color:#64748b;max-width:520px;margin:0 auto 34px;line-height:1.65}
+    .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+    .btn-xl{padding:13px 30px;font-size:15px;border-radius:12px}
+    .trust{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+    .trust-i{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#64748b}
+    .trust-i svg{width:13px;height:13px;color:#0d9488}
+    /* STATS STRIP */
+    .strip{background:#0f172a;padding:28px 0}
+    .strip-in{display:grid;grid-template-columns:repeat(4,1fr);max-width:900px;margin:0 auto;padding:0 24px}
+    .strip-s{text-align:center;padding:0 12px;border-right:1px solid rgba(255,255,255,.07)}
+    .strip-s:last-child{border-right:none}
+    .strip-v{font-size:28px;font-weight:800;color:#fff}
+    .strip-l{font-size:12px;color:rgba(255,255,255,.45);margin-top:3px}
+    /* SECTION */
+    .lp-sec{padding:72px 0}
+    .sec-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#0d9488;text-transform:uppercase;margin-bottom:10px;text-align:center}
+    .sec-h{font-size:clamp(26px,3.5vw,38px);font-weight:800;color:#0f172a;text-align:center;margin-bottom:14px;letter-spacing:-.5px}
+    .sec-sub{font-size:15px;color:#64748b;text-align:center;max-width:480px;margin:0 auto 48px;line-height:1.65}
+    /* HOW */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .step{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:26px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+    .step-n{width:33px;height:33px;border-radius:9px;background:#0d9488;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+    .step-t{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:7px}
+    .step-d{font-size:13px;color:#64748b;line-height:1.6}
+    /* MODELS */
+    .models{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .mcard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;transition:box-shadow .15s,transform .15s}
+    .mcard:hover{box-shadow:0 4px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+    .mcard-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .mav{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+    .mname{font-size:14px;font-weight:700;color:#0f172a}
+    .mbrand{font-size:11px;color:#94a3b8}
+    .mdesc{font-size:12.5px;color:#64748b;line-height:1.5;margin-bottom:14px}
+    .mprices{display:flex;gap:10px}
+    .mprice{font-size:10.5px;background:#f8fafc;border-radius:5px;padding:3px 7px;color:#475569}
+    .mprice span{font-weight:700;color:#0d9488}
+    /* FEATURES */
+    .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .feat{padding:24px;border-radius:14px;border:1px solid #e2e8f0;background:#fff}
+    .feat-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+    .feat-ico svg{width:20px;height:20px}
+    .feat-t{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:7px}
+    .feat-d{font-size:12.5px;color:#64748b;line-height:1.6}
+    /* CTA */
+    .lp-cta{background:linear-gradient(135deg,#0f172a 0%,#0a2f2b 100%);padding:72px 0;text-align:center}
+    .cta-h{font-size:clamp(26px,4vw,40px);font-weight:800;color:#fff;margin-bottom:14px}
+    .cta-sub{font-size:15px;color:rgba(255,255,255,.6);margin-bottom:32px}
+    /* FOOTER */
+    .lp-foot{background:#0f172a;border-top:1px solid rgba(255,255,255,.06);padding:36px 0}
+    .foot-in{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto;padding:0 32px;flex-wrap:wrap;gap:12px}
+    .foot-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#fff}
+    .foot-logo .logo-icon{width:26px;height:26px}
+    .foot-links{display:flex;gap:22px}
+    .foot-l{font-size:12.5px;color:rgba(255,255,255,.4);cursor:pointer;transition:color .15s}
+    .foot-l:hover{color:#fff}
+    .foot-copy{font-size:11.5px;color:rgba(255,255,255,.25)}
+    @media(max-width:900px){.steps,.models,.feats{grid-template-columns:repeat(2,1fr)}.strip-in{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.steps,.models,.feats{grid-template-columns:1fr}.strip-in{grid-template-columns:1fr}.ln-links{display:none}.lp-cont{padding:0 18px}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="ln">
+  <a href="/" class="ln-logo">
+    <div class="logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+    </div>
+    TokenPool
+  </a>
+  <div class="ln-links">
+    <a href="#how" class="ln-link">How it works</a>
+    <a href="#models" class="ln-link">Models</a>
+    <a href="#features" class="ln-link">Features</a>
+    <a href="#pricing" class="ln-link">Pricing</a>
+  </div>
+  <div class="ln-acts">
+    <a href="/login" class="btn btn-outline btn-sm">Sign in</a>
+    <a href="/register" class="btn btn-primary btn-sm">Get started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="lp-cont">
+    <div class="chip">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+      Unified AI Capacity Marketplace
+    </div>
+    <h1 class="h1">One Account. <span>Multiple AI Models.</span><br>Pay for What You Use.</h1>
+    <p class="sub">Access supported AI models through one unified marketplace and use a single TokenPool balance across your AI workflows.</p>
+    <div class="hero-btns">
+      <a href="/register" class="btn btn-primary btn-xl">Start using AI today</a>
+      <a href="/register?role=PROVIDER" class="btn btn-outline btn-xl">Become a provider →</a>
+    </div>
+    <div class="trust">
+      <div class="trust-i"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>Multiple AI Models</div>
+      <div class="trust-i"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>Pay-As-You-Go Usage</div>
+      <div class="trust-i"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>One Unified Wallet</div>
+      <div class="trust-i"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>One Chat Interface</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS STRIP (loaded from API) -->
+<div class="strip">
+  <div class="strip-in" id="landingStats">
+    <div class="strip-s"><div class="strip-v" id="lsUsers">—</div><div class="strip-l">Active users</div></div>
+    <div class="strip-s"><div class="strip-v" id="lsProviders">—</div><div class="strip-l">Verified providers</div></div>
+    <div class="strip-s"><div class="strip-v" id="lsRequests">—</div><div class="strip-l">API requests served</div></div>
+    <div class="strip-s"><div class="strip-v" id="lsUptime">99.9%</div><div class="strip-l">Uptime SLA</div></div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="lp-sec" id="how" style="background:#f8fafc">
+  <div class="lp-cont">
+    <div class="sec-eyebrow">How it works</div>
+    <h2 class="sec-h">Simple. Transparent. Efficient.</h2>
+    <p class="sec-sub">TokenPool routes your AI requests through authorized providers, metering usage and settling payments automatically.</p>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-t">Top up your wallet</div><div class="step-d">Add credits using UPI, card, or net banking. ₹1 = 8.5 credits. No monthly commitment required.</div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-t">Browse the marketplace</div><div class="step-d">Explore AI models from verified providers. Compare pricing, latency, and available capacity.</div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-t">Use AI instantly</div><div class="step-d">Send requests via the chat UI or API. Usage is metered per token. Credits are deducted in real-time.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MODELS -->
+<section class="lp-sec" id="models">
+  <div class="lp-cont">
+    <div class="sec-eyebrow">Available models</div>
+    <h2 class="sec-h">Access Top AI Models</h2>
+    <p class="sec-sub">Browse models from leading AI companies, available through authorized provider integrations.</p>
+    <div class="models" id="landingModelsGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:32px;color:#94a3b8;font-size:13px">Loading AI models…</div>
+    </div>
+    <div style="text-align:center;margin-top:28px"><a href="/login" class="btn btn-outline">View all models in marketplace →</a></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="lp-sec" id="features" style="background:#f8fafc">
+  <div class="lp-cont">
+    <div class="sec-eyebrow">Why TokenPool</div>
+    <h2 class="sec-h">Built for Scale & Security</h2>
+    <p class="sec-sub">Every feature is designed to make AI access reliable, transparent, and cost-effective.</p>
+    <div class="feats">
+      <div class="feat"><div class="feat-ico" style="background:#ede9fe;color:#7c3aed"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg></div><div class="feat-t">Multiple Models</div><div class="feat-d">Choose from available AI models in one marketplace without maintaining separate subscriptions for each model.</div></div>
+      <div class="feat"><div class="feat-ico" style="background:#f0fdfa;color:#0d9488"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div><div class="feat-t">Pay As You Go</div><div class="feat-d">Buy credits and pay based on actual usage. Only successful requests are charged with precise token metering.</div></div>
+      <div class="feat"><div class="feat-ico" style="background:#dbeafe;color:#2563eb"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3"/></svg></div><div class="feat-t">One AI Wallet</div><div class="feat-d">Use one balance across supported models. One unified deposit funds all your AI interactions.</div></div>
+      <div class="feat"><div class="feat-ico" style="background:#fef9c3;color:#d97706"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div><div class="feat-t">One Chat Experience</div><div class="feat-d">Keep your AI conversations in one place. Multi-turn dialogue history is securely stored and private to you.</div></div>
+      <div class="feat"><div class="feat-ico" style="background:#dcfce7;color:#16a34a"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div><div class="feat-t">Provider Marketplace</div><div class="feat-d">Providers can monetize legitimate, supported AI execution capacity. Earnings are strictly settled on actual usage.</div></div>
+      <div class="feat"><div class="feat-ico" style="background:#fee2e2;color:#dc2626"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg></div><div class="feat-t">Safe Routing & Privacy</div><div class="feat-d">Smart health-checked provider routing. Zero credential leakage, no passwords, and strict conversation isolation.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="lp-cta" id="pricing">
+  <div class="lp-cont">
+    <div class="sec-eyebrow" style="color:rgba(255,255,255,.45)">Get started today</div>
+    <div class="cta-h">Ready to access AI at marketplace rates?</div>
+    <div class="cta-sub">Join TokenPool today. No monthly fees — pay only for what you use.</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="/register" class="btn btn-primary btn-xl">Create free account</a>
+      <a href="/login" class="btn btn-outline btn-xl" style="background:transparent;color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.2)">Sign in</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-foot">
+  <div class="foot-in">
+    <div class="foot-logo">
+      <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div>
+      TokenPool
+    </div>
+    <div class="foot-links"><span class="foot-l">Privacy</span><span class="foot-l">Terms</span><span class="foot-l">API Docs</span><span class="foot-l">Support</span></div>
+    <div class="foot-copy">© 2026 TokenPool. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // If already logged in, redirect to dashboard
+    redirectIfLoggedIn();
+
+    // Load real model cards and stats from API
+    loadLandingModels();
+    loadLandingStats();
+  });
+
+  async function loadLandingStats() {
+    try {
+      const resp = await fetch('/api/v1/public/stats');
+      if (!resp.ok) return;
+      const json = await resp.json();
+      const stats = json?.data || {};
+      if (document.getElementById('lsUsers')) {
+        document.getElementById('lsUsers').textContent = (stats.users || 0).toLocaleString();
+      }
+      if (document.getElementById('lsProviders')) {
+        document.getElementById('lsProviders').textContent = (stats.providers || 0).toLocaleString();
+      }
+      if (document.getElementById('lsRequests')) {
+        document.getElementById('lsRequests').textContent = (stats.requests || 0).toLocaleString();
+      }
+      if (document.getElementById('lsUptime')) {
+        document.getElementById('lsUptime').textContent = stats.uptime || "99.9%";
+      }
+    } catch(e) {
+      console.warn("Could not load landing stats", e);
+    }
+  }
+
+  async function loadLandingModels() {
+    try {
+      const resp = await fetch('/api/v1/ai-models?active_only=true');
+      if (!resp.ok) throw new Error('Failed');
+      const data = await resp.json();
+      const models = data?.data?.models || [];
+      const grid = document.getElementById('landingModelsGrid');
+      if (!models.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:#94a3b8;font-size:13px">No AI models are currently available.</div>`;
+        return;
+      }
+      const statusMap = { AVAILABLE:'LIVE', LIMITED:'LIMITED', UNAVAILABLE:'N/A' };
+      const badgeClass = { AVAILABLE:'badge-green', LIMITED:'badge-yellow', UNAVAILABLE:'badge-gray' };
+      grid.innerHTML = models.map(m => `
+        <div class="mcard"><div class="mcard-top"><div class="mav" style="background:${m.badge_color||'#64748b'}">${m.badge||m.name[0]}</div><div><div class="mname">${m.name}</div><div class="mbrand">${m.provider_brand||''}</div></div><span class="badge ${badgeClass[m.status]||'badge-green'}" style="margin-left:auto;font-size:9.5px">${statusMap[m.status]||m.status}</span></div><p class="mdesc">${m.description||''}</p><div class="mprices"><div class="mprice">Input <span>₹${m.input_price_per_1k}/1k</span></div><div class="mprice">Output <span>₹${m.output_price_per_1k}/1k</span></div></div></div>
+      `).join('');
+    } catch(e) {
+      const grid = document.getElementById('landingModelsGrid');
+      if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:#94a3b8;font-size:13px">Could not load AI models.</div>`;
+    }
+  }
+</script>
+</body>
+</html>

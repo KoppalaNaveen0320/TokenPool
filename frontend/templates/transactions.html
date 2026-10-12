@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Transactions{% endblock %}
+{% block bc_page %}Transactions{% endblock %}
+{% block active_page %}transactions{% endblock %}
+{% block content %}
+<div class="page-hd">
+  <div><div class="page-super">Billing</div><div class="page-title">Transactions</div><div class="page-sub">Your complete payment and usage history.</div></div>
+  <div class="page-hd-actions"><a href="/wallet" class="btn btn-primary">+ Add Credits</a></div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:16px">
+  <div class="card-body" style="padding:12px 16px">
+    <div class="filter-bar">
+      <div class="srch" style="flex:1;min-width:200px">
+        <svg class="srch-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="search" class="srch-input" id="txSearch" placeholder="Search transactions…" oninput="debounceLoad()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><div class="card-title">All Transactions</div><div style="font-size:11.5px;color:#94a3b8" id="txCount">Loading…</div></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Transaction ID</th><th>Description</th><th>Type</th><th>Amount</th><th>Credits</th><th>Balance After</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="txBody"><tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8"><span class="spinner"></span></td></tr></tbody>
+    </table>
+  </div>
+  <div class="pag" id="txPag"></div>
+</div>
+
+<!-- Error state -->
+<div id="txError" style="display:none">
+  <div class="alert alert-error" style="margin-top:16px">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <div><strong>Unable to load transactions.</strong> <span id="txErrMsg"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:12px" onclick="loadTx()">Retry</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let page = 1;
+let _debTimer = null;
+
+function debounceLoad() {
+  clearTimeout(_debTimer);
+  _debTimer = setTimeout(() => { page = 1; loadTx(); }, 400);
+}
+
+function txTypeBadge(type) {
+  const map = { TOP_UP:"badge-green", USAGE:"badge-red", REFUND:"badge-blue", EARNING:"badge-green", PAYOUT:"badge-yellow", COMMISSION:"badge-gray" };
+  const labels = { TOP_UP:"TOP UP", USAGE:"USAGE", REFUND:"REFUND", EARNING:"EARNING", PAYOUT:"PAYOUT", COMMISSION:"COMMISSION" };
+  return `<span class="badge ${map[type]||'badge-gray'}">${labels[type]||type}</span>`;
+}
+
+function amtColor(type, amt) {
+  const positive = ["TOP_UP","REFUND","EARNING"];
+  return positive.includes(type) ? "#16a34a" : "#dc2626";
+}
+
+function fmtAmt(type, amt) {
+  const positive = ["TOP_UP","REFUND","EARNING"];
+  const sign = positive.includes(type) ? "+" : "-";
+  return sign + "₹" + Math.abs(Number(amt||0)).toFixed(2);
+}
+
+async function loadTx() {
+  const q = (document.getElementById("txSearch").value||"").trim();
+  document.getElementById("txError").style.display = "none";
+  document.getElementById("txBody").innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8"><span class="spinner"></span></td></tr>`;
+  document.getElementById("txCount").textContent = "Loading…";
+
+  try {
+    const d = await ConsumerAPI.transactions(page, q);
+    const txs   = d?.data?.transactions || d?.transactions || [];
+    const total  = d?.data?.total || txs.length;
+    const pages  = Math.ceil(total / 20);
+
+    document.getElementById("txCount").textContent = total + " transaction" + (total !== 1 ? "s" : "");
+
+    if (txs.length) {
+      document.getElementById("txBody").innerHTML = txs.map(t => `
+        <tr>
+          <td class="text-muted" style="font-family:monospace;font-size:11px">#${t.id||"—"}</td>
+          <td>${escHtml(t.description||t.type||"—")}</td>
+          <td>${txTypeBadge(t.type||"")}</td>
+          <td style="font-weight:700;color:${amtColor(t.type||"",t.amount)}">${fmtAmt(t.type||"",t.amount)}</td>
+          <td>${Number(t.credits||0) !== 0 ? (Number(t.credits)>0?"+":"")+Number(t.credits).toLocaleString("en-IN") : "—"}</td>
+          <td>₹${Number(t.balance_after||0).toFixed(2)}</td>
+          <td>${sbadge(t.status||"COMPLETED")}</td>
+          <td class="text-muted">${fDate(t.created_at||new Date())}</td>
+        </tr>`).join("");
+    } else {
+      document.getElementById("txBody").innerHTML = `<tr><td colspan="8"><div class="empty">
+        <div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757"/></svg></div>
+        <div class="empty-title">No transactions yet</div>
+        <div class="empty-desc">Top up your wallet to get started</div>
+      </div></td></tr>`;
+    }
+
+    // Pagination
+    const pag = document.getElementById("txPag");
+    if (pages > 1) {
+      let btns = "";
+      if (page > 1) btns += `<button class="btn btn-outline btn-sm" onclick="goPage(${page-1})">← Prev</button>`;
+      btns += `<span style="font-size:12px;color:#64748b;padding:0 10px">Page ${page} of ${pages}</span>`;
+      if (page < pages) btns += `<button class="btn btn-outline btn-sm" onclick="goPage(${page+1})">Next →</button>`;
+      pag.innerHTML = btns;
+    } else {
+      pag.innerHTML = "";
+    }
+  } catch(e) {
+    document.getElementById("txError").style.display = "block";
+    document.getElementById("txErrMsg").textContent = e.message || "";
+    document.getElementById("txCount").textContent = "Error";
+    document.getElementById("txBody").innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8">Could not load transactions.</td></tr>`;
+  }
+}
+
+function goPage(n) { page = n; loadTx(); }
+function fDate(s){try{return new Date(s).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}catch{return"—";}}
+function escHtml(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+document.addEventListener("DOMContentLoaded", loadTx);
+</script>
+{% endblock %}

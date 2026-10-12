@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+{% block bc_page %}My Orders{% endblock %}
+{% block active_page %}orders{% endblock %}
+
+{% block head_extra %}
+<style>
+  .order-card { background: white; border: 1px solid var(--slate-200); border-radius: 12px; padding: 18px; margin-bottom: 14px; transition: box-shadow .15s; }
+  .order-card:hover { box-shadow: var(--shadow-sm); }
+  .order-step-bar { display: flex; align-items: center; justify-content: space-between; position: relative; margin: 24px 0 30px; }
+  .order-step-bar::before { content: ""; position: absolute; top: 14px; left: 10%; right: 10%; height: 2px; background: var(--slate-200); z-index: 1; }
+  .order-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .order-step-dot { width: 28px; height: 28px; border-radius: 50%; background: white; border: 2px solid var(--slate-300); color: var(--slate-400); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .order-step.completed .order-step-dot { background: var(--teal); border-color: var(--teal); color: white; }
+  .order-step.active .order-step-dot { border-color: var(--teal); color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.2); }
+  .order-step-lbl { font-size: 11px; font-weight: 600; color: var(--slate-500); text-align: center; }
+  .order-step.active .order-step-lbl { color: var(--teal); font-weight: 700; }
+  .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .ftab { padding: 6px 14px; font-size: 12px; font-weight: 600; border: 1px solid var(--slate-200); border-radius: 20px; color: var(--slate-600); cursor: pointer; background: white; }
+  .ftab.active { background: var(--teal); color: white; border-color: var(--teal); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Marketplace Purchases</div>
+    <div class="page-title">My Orders</div>
+    <div class="page-sub">Direct seller payments, proof submissions, and credit release status.</div>
+  </div>
+  <div class="page-hd-actions">
+    <a href="/marketplace" class="btn btn-primary">+ Buy More Credits</a>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="filter-tabs" id="orderTabs">
+  <button class="ftab active" data-filter="" onclick="filterOrders('', this)">All Orders</button>
+  <button class="ftab" data-filter="PAYMENT_PENDING" onclick="filterOrders('PAYMENT_PENDING', this)">Pending Payment</button>
+  <button class="ftab" data-filter="PAYMENT_SUBMITTED" onclick="filterOrders('PAYMENT_SUBMITTED', this)">Under Seller Review</button>
+  <button class="ftab" data-filter="APPROVED" onclick="filterOrders('APPROVED', this)">Approved / Credits Released</button>
+  <button class="ftab" data-filter="DISPUTED" onclick="filterOrders('DISPUTED', this)">Disputed</button>
+  <button class="ftab" data-filter="REJECTED" onclick="filterOrders('REJECTED', this)">Rejected</button>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+  <div class="card-hd">
+    <div class="card-title">Order History</div>
+    <div id="orderCount" style="font-size:12px;color:var(--slate-400)">Loading...</div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Model / Listing</th>
+          <th>Credits</th>
+          <th>Total Amount</th>
+          <th>Seller</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody">
+        <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--slate-400)"><span class="spinner"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Order Detail & Payment Modal -->
+<div class="overlay" id="orderModal">
+  <div class="modal modal-lg">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title" id="omTitle">Order Details</div>
+        <div style="font-size:11.5px;color:var(--slate-400)" id="omSub">Loading...</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('orderModal')">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="omBody">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Dispute Modal -->
+<div class="overlay" id="disputeModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Raise Order Dispute</div>
+      <button class="modal-close" onclick="closeModal('disputeModal')">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="margin-bottom:14px;font-size:12px">
+        Disputes are reviewed directly by the TokenPool Admin team. Please provide accurate details.
+      </div>
+      <input type="hidden" id="dispOrderId" value="">
+      <div class="fg">
+        <label class="flabel">Dispute Reason *</label>
+        <select class="fc" id="dispReason">
+          <option value="Seller not confirming payment after 24h">Seller not confirming payment after 24 hours</option>
+          <option value="Payment deducted but seller rejected">Payment deducted from bank/UPI but seller rejected</option>
+          <option value="Incorrect seller payment details">Incorrect seller payment details</option>
+          <option value="Other billing issue">Other billing issue</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="flabel">Additional Details / Message</label>
+        <textarea class="fc" id="dispMessage" rows="3" placeholder="Provide any additional context or UTR reference..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('disputeModal')">Cancel</button>
+      <button class="btn btn-primary" id="btnSubmitDispute" onclick="submitDispute()">Submit Dispute to Admin</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _allOrders = [];
+let _activeStatus = "";
+
+function statusBadge(s) {
+  const map = {
+    PAYMENT_PENDING: "badge-yellow",
+    PAYMENT_SUBMITTED: "badge-blue",
+    SELLER_REVIEW: "badge-blue",
+    SELLER_CONFIRMED: "badge-green",
+    APPROVED: "badge-green",
+    DISPUTED: "badge-red",
+    ADMIN_REVIEW: "badge-purple",
+    REJECTED: "badge-red",
+    CANCELLED: "badge-gray",
+    EXPIRED: "badge-gray",
+  };
+  return `<span class="badge ${map[s] || 'badge-gray'}">${s}</span>`;
+}
+
+function filterOrders(status, btn) {
+  _activeStatus = status;
+  document.querySelectorAll(".ftab").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  loadOrders();
+}
+
+async function loadOrders() {
+  const tbody = document.getElementById("ordersBody");
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--slate-400)"><span class="spinner"></span></td></tr>`;
+  try {
+    const res = await OrdersAPI.list(_activeStatus);
+    _allOrders = res?.data?.orders || [];
+    document.getElementById("orderCount").textContent = `${_allOrders.length} order(s)`;
+    if (!_allOrders.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--slate-400)">
+        No orders found in this category. Browse the <a href="/marketplace" style="color:var(--teal);font-weight:600">Marketplace</a> to purchase AI credits.
+      </td></tr>`;
+      return;
+    }
+    tbody.innerHTML = _allOrders.map(o => `
+      <tr>
+        <td style="font-family:monospace;font-weight:600;color:var(--slate-700)" title="${escHtml(o.order_id||'')}">#${o.id}</td>
+        <td>
+          <div style="font-weight:600;color:var(--slate-900)">${escHtml(o.model_name || o.listing_name || 'AI Credits')}</div>
+          <div style="font-size:11px;color:var(--slate-400)">₹${Number(o.price_per_unit||0).toFixed(2)} / credit</div>
+        </td>
+        <td style="font-weight:700;color:var(--teal)">${Number(o.quantity||0).toLocaleString('en-IN')}</td>
+        <td style="font-weight:700">₹${Number(o.total_amount||0).toFixed(2)}</td>
+        <td style="color:var(--slate-600)">${escHtml(o.seller_name || 'Provider')}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td style="font-size:11.5px;color:var(--slate-400)">${new Date(o.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="openOrderDetail('${escHtml(o.order_id||'')}')">
+            ${o.status === 'PAYMENT_PENDING' ? 'Pay Now' : 'View'}
+          </button>
+        </td>
+      </tr>
+    `).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#ef4444">
+      Failed to load orders: ${escHtml(err.message || 'Error')}
+    </td></tr>`;
+  }
+}
+
+async function openOrderDetail(orderId) {
+  openModal('orderModal');
+  const omTitle = document.getElementById("omTitle");
+  const omSub = document.getElementById("omSub");
+  const omBody = document.getElementById("omBody");
+  omTitle.textContent = `Order #${orderId}`;
+  omSub.textContent = "Fetching order details...";
+  omBody.innerHTML = `<div style="text-align:center;padding:40px"><span class="spinner"></span></div>`;
+
+  try {
+    const res = await OrdersAPI.get(orderId);
+    const o = res?.data || {};
+    omSub.textContent = `Placed on ${new Date(o.created_at).toLocaleString('en-IN')}`;
+
+    let actionSection = "";
+    if (o.status === "PAYMENT_PENDING") {
+      actionSection = `
+        <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:10px;padding:18px;margin-top:16px">
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--slate-900)">Submit Payment Proof</h4>
+          <p style="font-size:12px;color:var(--slate-500);margin-bottom:14px">
+            Make payment of <strong style="color:var(--teal)">₹${Number(o.total_amount).toFixed(2)}</strong> to the seller using the details above, then upload your transaction reference and screenshot.
+          </p>
+          <form id="proofForm" onsubmit="handleProofSubmit(event, '${escHtml(o.order_id||'')}', ${Number(o.total_amount).toFixed(2)})">
+            <div class="fg">
+              <label class="flabel" style="font-weight:700">Transaction ID *</label>
+              <input type="text" class="fc" id="proofTxId" required placeholder="Enter transaction / UTR ID">
+              <div style="font-size:11.5px;color:var(--slate-500);margin-top:4px">
+                Enter the transaction ID exactly as shown in your payment screenshot.
+              </div>
+            </div>
+            <div class="fg">
+              <label class="flabel" style="font-weight:700">Amount Paid (₹) *</label>
+              <input type="number" class="fc" id="proofAmount" required step="0.01" min="0.01" value="${Number(o.total_amount).toFixed(2)}" placeholder="Enter exact amount paid">
+            </div>
+            <div class="fg">
+              <label class="flabel" style="font-weight:700">Payment Screenshot *</label>
+              <input type="file" class="fc" id="proofFile" accept="image/png,image/jpeg,image/webp" required>
+              <div style="font-size:11.5px;color:var(--slate-500);margin-top:4px">
+                Supported image formats: PNG, JPG, JPEG, WEBP (Max 5MB). The transaction ID must be clearly visible.
+              </div>
+            </div>
+            <div class="fg">
+              <label class="flabel">Optional Note for Seller</label>
+              <input type="text" class="fc" id="proofNote" placeholder="e.g. Sent from UPI app">
+            </div>
+            <div id="proofAlertBox" style="display:none;margin-top:10px"></div>
+            <button type="submit" class="btn btn-primary" id="btnSubmitProof" style="width:100%;margin-top:10px">
+              Submit Payment
+            </button>
+          </form>
+        </div>
+      `;
+    } else if (o.status === "PAYMENT_SUBMITTED" || o.status === "SELLER_REVIEW") {
+      actionSection = `
+        <div class="alert alert-info" style="margin-top:16px">
+          <div>
+            <strong>Payment Proof Submitted!</strong><br>
+            Transaction ID: <code style="font-weight:700">${escHtml(o.payment_proof?.transaction_id || 'Submitted')}</code><br>
+            <span style="font-size:12px">Waiting for the seller to verify funds in their payment account. Once confirmed, credits will be released directly to your account.</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between">
+          <a href="${OrdersAPI.proofUrl(o.order_id)}" target="_blank" class="btn btn-outline btn-sm">
+            View Uploaded Screenshot
+          </a>
+          <button class="btn btn-outline btn-sm" style="color:#ef4444;border-color:#fca5a5" onclick="openDisputeModal('${escHtml(o.order_id||'')}')">
+            Raise Dispute (Seller Not Confirming)
+          </button>
+        </div>
+      `;
+    } else if (o.status === "APPROVED") {
+      actionSection = `
+        <div class="alert alert-green" style="margin-top:16px">
+          <div>
+            <strong>✓ Credits Released!</strong><br>
+            ${Number(o.quantity).toLocaleString('en-IN')} credits have been added to your TokenPool balance and are ready to use.
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <a href="/chat" class="btn btn-primary btn-sm">Start Using AI Model →</a>
+        </div>
+      `;
+    } else if (o.status === "REJECTED") {
+      actionSection = `
+        <div class="alert alert-error" style="margin-top:16px">
+          <div>
+            <strong>Payment Rejected by Seller</strong><br>
+            Reason: <em>${escHtml(o.rejection_reason || 'Payment could not be verified by seller')}</em>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <button class="btn btn-outline btn-sm" style="color:#ef4444;border-color:#fca5a5" onclick="openDisputeModal(${o.id})">
+            Raise Dispute with Admin
+          </button>
+        </div>
+      `;
+    } else if (o.status === "DISPUTED" || o.status === "ADMIN_REVIEW") {
+      actionSection = `
+        <div class="alert alert-warning" style="margin-top:16px">
+          <div>
+            <strong>Dispute Under Admin Review</strong><br>
+            An administrator is reviewing your transaction and submitted evidence. Credits will be released immediately once verified.
+          </div>
+        </div>
+      `;
+    }
+
+    omBody.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div class="scard" style="border:1px solid var(--slate-200)">
+          <div class="scard-label">Credits Purchased</div>
+          <div class="scard-val" style="color:var(--teal)">${Number(o.quantity).toLocaleString('en-IN')}</div>
+          <div class="scard-sub">Rate: ₹${Number(o.price_per_unit).toFixed(2)} / unit</div>
+        </div>
+        <div class="scard" style="border:1px solid var(--slate-200)">
+          <div class="scard-label">Total Payable</div>
+          <div class="scard-val">₹${Number(o.total_amount).toFixed(2)}</div>
+          <div class="scard-sub">Status: ${o.status}</div>
+        </div>
+      </div>
+
+      <div style="border:1px solid var(--slate-200);border-radius:10px;padding:14px;background:#f8fafc">
+        <div style="font-size:12px;font-weight:700;color:var(--slate-800);margin-bottom:8px">Seller Payment Details</div>
+        <div style="font-size:12.5px;color:var(--slate-600);line-height:1.6">
+          <div><strong>Seller:</strong> ${escHtml(o.seller_name || 'Authorized Provider')}</div>
+          <div><strong>Payment Method:</strong> ${escHtml(o.payment_method || 'UPI')}</div>
+          <div><strong>Payment Identifier:</strong> <code style="background:white;padding:2px 6px;border:1px solid var(--slate-300);border-radius:4px;font-weight:700;color:var(--teal)">${escHtml(o.payment_identifier || 'seller@upi')}</code></div>
+          ${o.payment_instructions ? `<div style="margin-top:6px;font-style:italic"><strong>Instructions:</strong> ${escHtml(o.payment_instructions)}</div>` : ''}
+        </div>
+      </div>
+
+      ${actionSection}
+    `;
+  } catch (err) {
+    omBody.innerHTML = `<div style="color:#ef4444;text-align:center;padding:30px">
+      Failed to fetch order details: ${escHtml(err.message || 'Error')}
+    </div>`;
+  }
+}
+
+async function handleProofSubmit(e, orderId, totalAmount) {
+  e.preventDefault();
+  const txId = document.getElementById("proofTxId").value.trim();
+  const amountVal = document.getElementById("proofAmount").value.trim();
+  const fileInput = document.getElementById("proofFile");
+  const note = document.getElementById("proofNote").value.trim();
+  const btn = document.getElementById("btnSubmitProof");
+
+  if (!txId) { alert("Please enter Transaction / UTR ID"); return; }
+  if (!amountVal || isNaN(parseFloat(amountVal))) { alert("Please enter the amount paid"); return; }
+  if (!fileInput.files.length) { alert("Please select payment screenshot"); return; }
+  if (fileInput.files[0].size > 5 * 1024 * 1024) { alert("Screenshot must be under 5 MB"); return; }
+
+  const formData = new FormData();
+  formData.append("transaction_id", txId);
+  formData.append("amount", parseFloat(amountVal).toFixed(2));
+  formData.append("screenshot", fileInput.files[0]);
+  if (note) formData.append("note", note);
+
+  const alertBox = document.getElementById("proofAlertBox");
+  if (alertBox) { alertBox.style.display = "none"; alertBox.innerHTML = ""; }
+
+  btn.disabled = true;
+  btn.textContent = "Verifying payment...";
+
+  try {
+    const res = await OrdersAPI.submitProof(orderId, formData);
+    if (alertBox) {
+      alertBox.className = "alert alert-green";
+      alertBox.innerHTML = "<strong>✓ Payment verified successfully.</strong>";
+      alertBox.style.display = "block";
+    }
+    setTimeout(() => {
+      openOrderDetail(orderId);
+      loadOrders();
+    }, 1200);
+  } catch (err) {
+    const msg = err.message || "Payment verification failed.";
+    if (alertBox) {
+      alertBox.className = "alert alert-error";
+      alertBox.innerHTML = `<strong>Payment Rejected</strong><br>${escHtml(msg)}`;
+      alertBox.style.display = "block";
+    } else {
+      alert(msg);
+    }
+    btn.disabled = false;
+    btn.textContent = "Submit Payment";
+    loadOrders();
+  }
+}
+
+function openDisputeModal(orderId) {
+  document.getElementById("dispOrderId").value = orderId;
+  document.getElementById("dispMessage").value = "";
+  openModal("disputeModal");
+}
+
+async function submitDispute() {
+  const orderId = document.getElementById("dispOrderId").value;
+  const reason = document.getElementById("dispReason").value;
+  const msg = document.getElementById("dispMessage").value.trim();
+  const btn = document.getElementById("btnSubmitDispute");
+
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  try {
+    await OrdersAPI.dispute(orderId, reason, msg);
+    closeModal("disputeModal");
+    alert("Dispute raised successfully. An administrator has been assigned to verify your payment.");
+    openOrderDetail(orderId);
+    loadOrders();
+  } catch (err) {
+    alert("Failed to raise dispute: " + (err.message || "Error"));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Submit Dispute to Admin";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const qOrderId = params.get("order_id"); // UUID string e.g. ORD-xxxxxxxx
+  loadOrders().then(() => {
+    if (qOrderId) openOrderDetail(qOrderId);
+  });
+});
+</script>
+{% endblock %}

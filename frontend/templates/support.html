@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Support{% endblock %}
+{% block bc_page %}Support{% endblock %}
+{% block active_page %}support{% endblock %}
+{% block content %}
+<div class="page-hd">
+  <div><div class="page-super">Account</div><div class="page-title">Support Center</div><div class="page-sub">Get help with your TokenPool account.</div></div>
+  <div class="page-hd-actions"><button class="btn btn-primary" onclick="openModal('ticketModal')">+ New Ticket</button></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 300px;gap:18px">
+  <div class="card">
+    <div class="card-hd"><div class="card-title">My Support Tickets</div></div>
+    <div id="ticketList">
+      <div class="empty"><div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.712 4.33a9.027 9.027 0 0 1 1.652 1.306"/></svg></div><div class="empty-title">No tickets yet</div><div class="empty-desc">Open a new support ticket if you need help</div><button class="btn btn-primary" style="margin-top:12px" onclick="openModal('ticketModal')">Open Ticket</button></div>
+    </div>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd"><div class="card-title">Quick Help</div></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="#" style="font-size:12.5px;color:#0d9488;font-weight:600">📖 Getting started guide</a>
+          <a href="#" style="font-size:12.5px;color:#0d9488;font-weight:600">💰 How billing works</a>
+          <a href="#" style="font-size:12.5px;color:#0d9488;font-weight:600">🤖 About DEMO mode</a>
+          <a href="#" style="font-size:12.5px;color:#0d9488;font-weight:600">🔑 API documentation</a>
+          <a href="#" style="font-size:12.5px;color:#0d9488;font-weight:600">⚙️ Account settings</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="card-title">Status</div></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#475569">API Gateway</span><span class="badge badge-green">Operational</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#475569">MockAI Provider</span><span class="badge badge-green">Operational</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#475569">Wallet Service</span><span class="badge badge-green">Operational</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#475569">Marketplace</span><span class="badge badge-green">Operational</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="ticketModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">Open Support Ticket</div><button class="modal-close" onclick="closeModal('ticketModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="fg"><label class="flabel">Category</label><select class="fc fsel" id="tkCat"><option>Billing</option><option>Technical Issue</option><option>Account</option><option>AI Usage</option><option>Other</option></select></div>
+      <div class="fg"><label class="flabel">Subject</label><input type="text" id="tkSubj" class="fc" placeholder="Brief description of your issue"></div>
+      <div class="fg"><label class="flabel">Message</label><textarea id="tkMsg" class="fc" rows="4" placeholder="Describe your issue in detail…"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('ticketModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createTicket()">Submit Ticket</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadTickets() {
+  try {
+    const res = await SupportAPI.tickets();
+    const tickets = res.data?.tickets || res.tickets || [];
+    const container = document.getElementById("ticketList");
+    if (!tickets.length) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.712 4.33a9.027 9.027 0 0 1 1.652 1.306"/></svg></div><div class="empty-title">No tickets yet</div><div class="empty-desc">Open a new support ticket if you need help</div><button class="btn btn-primary" style="margin-top:12px" onclick="openModal('ticketModal')">Open Ticket</button></div>`;
+      return;
+    }
+    container.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Ticket ID</th><th>Subject</th><th>Category</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>
+        ${tickets.map(t => `
+          <tr>
+            <td><strong>#${t.id}</strong></td>
+            <td>${t.subject || "—"}</td>
+            <td><span class="badge badge-gray">${t.category || "General"}</span></td>
+            <td><span class="badge ${t.status==='OPEN'?'badge-teal':t.status==='RESOLVED'?'badge-green':'badge-gray'}">${t.status}</span></td>
+            <td class="text-muted">${new Date(t.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table></div>`;
+  } catch(e) {
+    document.getElementById("ticketList").innerHTML = `<div style="padding:24px;text-align:center;color:#ef4444">Unable to load support tickets. <a href="javascript:loadTickets()" style="color:#0d9488">Retry</a></div>`;
+  }
+}
+
+async function createTicket() {
+  const subj = document.getElementById("tkSubj").value.trim();
+  const msg  = document.getElementById("tkMsg").value.trim();
+  const cat  = document.getElementById("tkCat").value;
+  if (!subj || !msg) { toast("Please fill all fields","err"); return; }
+  try {
+    await SupportAPI.create({ subject:subj, message:msg, category:cat });
+    closeModal("ticketModal");
+    toast("Ticket submitted! We'll respond within 24 hours.","ok");
+    document.getElementById("tkSubj").value = "";
+    document.getElementById("tkMsg").value = "";
+    loadTickets();
+  } catch(e) {
+    toast(e.message || "Failed to submit ticket. Please try again.","err");
+  }
+}
+document.addEventListener("DOMContentLoaded", loadTickets);
+</script>
+{% endblock %}

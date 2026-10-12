@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+{% block title %}My AI Accounts — TokenPool{% endblock %}
+{% block bc_page %}My AI Accounts{% endblock %}
+{% block ws_class %}p{% endblock %}
+{% block role_label %}Provider{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section-label">Provider</div>
+<a class="nav-a" href="/provider/dashboard"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 12 2-2m0 0 7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11 2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>Overview</a>
+<a class="nav-a active" href="/provider/connections"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>My AI Accounts</a>
+<a class="nav-a" href="/provider/listings"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36"/></svg>My Listings</a>
+<a class="nav-a" href="/provider/earnings"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Earnings</a>
+<div class="nav-section-label">Account</div>
+<a class="nav-a" href="/settings"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281"/></svg>Settings</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super">Provider Portal</div>
+    <div class="page-title">My AI Accounts & Connections</div>
+    <div class="page-sub">Connect your existing AI subscriptions using your verified Gmail identity, manage declared token capacity, and track authorization status.</div>
+  </div>
+  <div class="page-hd-actions">
+    <button class="btn btn-primary" onclick="openConnectModal()">+ Connect AI Account</button>
+  </div>
+</div>
+
+<div class="alert alert-info" style="margin-bottom:18px;display:flex;align-items:flex-start;gap:12px">
+  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="22" height="22" style="flex-shrink:0;margin-top:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/></svg>
+  <div>
+    <strong>Gmail Identity-Based AI Connections:</strong>
+    <ul style="margin:4px 0 0 16px;padding:0;font-size:12px;line-height:1.6">
+      <li><strong>Identity Association:</strong> TokenPool links your provider account via your verified Gmail identity. Identity match alone is separate from execution authorization and marketplace eligibility.</li>
+      <li><strong>Zero Credential Leakage:</strong> TokenPool <strong>never</strong> asks for your Gmail password, AI password, OTP/MFA, browser cookies, or browser sessions.</li>
+      <li><strong>Capacity Accounting:</strong> You declare the token capacity committed to the marketplace. Capacity is only consumed upon successful execution.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hd">
+    <div>
+      <div class="card-title">MY AI ACCOUNTS</div>
+      <div class="card-sub" style="font-size:11.5px;color:var(--slate-500)">Active and available AI account connections powering your marketplace listings.</div>
+    </div>
+    <span class="badge badge-gray" id="connCount">Loading…</span>
+  </div>
+  <div id="connList">
+    <div style="text-align:center;padding:32px"><span class="spinner"></span></div>
+  </div>
+</div>
+
+<!-- Connect AI Account Modal -->
+<div class="overlay" id="connectAiModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Connect AI Account</div>
+        <div style="font-size:12px;color:var(--slate-400)">Link your AI subscription using your verified Gmail identity</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('connectAiModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="font-size:11.5px;margin-bottom:14px;background:#f0fdf4;border-color:#bbf7d0;color:#166534">
+        🔒 <strong>Provider API Capacity:</strong> Connect your authorized upstream API credentials (Google Gemini, OpenAI, Anthropic). API keys are validated on submission, strongly encrypted at rest, and never exposed in the UI.
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Connection Type</label>
+        <input type="text" class="fc" value="PROVIDER API CAPACITY" readonly style="background:#f8fafc;font-weight:700;color:var(--teal);letter-spacing:0.5px">
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Upstream AI Provider *</label>
+        <select class="fc fsel" id="aiProviderSelect" onchange="onProviderSelectChange()">
+          <option value="gemini">Google Gemini (Gemini Pro, Flash)</option>
+          <option value="openai">OpenAI (GPT-4o, GPT-4o-mini)</option>
+          <option value="anthropic">Anthropic (Claude 3.5 Sonnet, Claude 3 Haiku)</option>
+          <option value="mock">MockAI (Sandbox Test Provider)</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Provider Capacity Label</label>
+        <input type="text" id="aiConnLabel" class="fc" placeholder="e.g. Gemini Production API Key">
+        <div class="fhint">Descriptive label for identifying this capacity source.</div>
+      </div>
+
+      <div class="fg" id="apiKeyWrap">
+        <label class="flabel" style="color:var(--slate-800)">Provider API Key *</label>
+        <input type="password" id="fallbackApiKey" class="fc" placeholder="Enter API key (e.g. AIzaSy… or sk-…)">
+        <div class="fhint" style="color:var(--slate-500)">Key will be verified immediately with the upstream provider before activation. Encrypted at rest.</div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Initial Declared Capacity (Tokens) *</label>
+        <input type="number" id="aiDeclaredCap" class="fc" placeholder="100000" min="0" step="5000" value="100000">
+        <div class="fhint">Token commitment you declare for marketplace listings. Tracked in PostgreSQL.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('connectAiModal')">Cancel</button>
+      <button class="btn btn-primary" id="btnConnectAi" onclick="doConnectAiAccount()">Verify & Connect Capacity</button>
+    </div>
+  </div>
+</div>
+
+<!-- Declare Capacity Modal -->
+<div class="overlay" id="declareCapModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Declare Marketplace Capacity</div>
+      <button class="modal-close" onclick="closeModal('declareCapModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="decConnId">
+      <div class="alert alert-info" style="font-size:11.5px;margin-bottom:14px">
+        <strong>Provider-Declared Capacity:</strong> TokenPool tracks your declared token quantity for marketplace accounting and listing limits. The upstream provider's remaining quota may vary.
+      </div>
+      <div class="fg">
+        <label class="flabel">Connection Source</label>
+        <input type="text" id="decConnName" class="fc" readonly style="background:#f8fafc;font-weight:700">
+      </div>
+      <div class="fg">
+        <label class="flabel">Declared Token Capacity *</label>
+        <input type="number" id="decAmount" class="fc" min="0" step="1000" placeholder="100000">
+        <div class="fhint" id="decHint">Cannot be lower than already committed capacity.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('declareCapModal')">Cancel</button>
+      <button class="btn btn-primary" id="btnDoDeclare" onclick="doDeclareCapacity()">Update Declared Capacity</button>
+    </div>
+<!-- Delegated Commitment Modal -->
+<div class="overlay" id="delegatedCommitModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Marketplace Capacity Commitment</div>
+        <div style="font-size:12px;color:var(--slate-400)">Allocate eligible ChatGPT plan requests to TokenPool marketplace</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('delegatedCommitModal')"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="commitConnId">
+      <div class="alert alert-info" style="font-size:11.5px;margin-bottom:14px;background:#f0fdf4;border-color:#bbf7d0;color:#166534">
+        🛡️ <strong>Official Delegated Execution:</strong> Your ChatGPT plan is used strictly through OpenAI's official integration. TokenPool never accesses your personal ChatGPT conversations, memories, or passwords.
+      </div>
+      <div class="fg">
+        <label class="flabel">Connected Account</label>
+        <input type="text" id="commitAccountEmail" class="fc" readonly style="background:#f8fafc;font-weight:700">
+      </div>
+      <div class="fg">
+        <label class="flabel">Marketplace Commitment (% of plan usage) *</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="range" id="commitRange" min="5" max="80" step="5" value="20" style="flex:1" oninput="onCommitRangeChange(this.value)">
+          <span id="commitPercentLabel" style="font-weight:700;font-size:16px;min-width:48px;color:var(--teal)">20%</span>
+        </div>
+        <div class="fhint">Commit a portion of your eligible plan requests for consumer purchase on TokenPool.</div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Committed Marketplace Units (Accounting Units)</label>
+        <input type="number" id="commitUnits" class="fc" value="20000" min="1000" step="1000" oninput="onCommitUnitsChange(this.value)">
+        <div class="fhint">Marketplace accounting units committed to listings. Upstream usage limits are continuously respected.</div>
+      </div>
+      <div style="background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;margin-top:10px;font-size:11.5px;line-height:1.5;color:var(--slate-600)">
+        <div><strong>• Revocation Method:</strong> You may disconnect or revoke TokenPool access at any time. Active listings will pause immediately.</div>
+        <div style="margin-top:4px"><strong>• Consumer Privacy:</strong> Consumer chat history is isolated in TokenPool; providers cannot view consumer chat history.</div>
+      </div>
+      <div style="margin-top:12px">
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;cursor:pointer">
+          <input type="checkbox" id="chkCommitConfirm" style="margin-top:3px">
+          <span>I explicitly authorize TokenPool to use eligible AI requests from my ChatGPT plan up to my declared commitment.</span>
+        </label>
+      </div>
+      <div style="margin-top:8px">
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;cursor:pointer">
+          <input type="checkbox" id="chkPrivacyConfirm" style="margin-top:3px">
+          <span>I acknowledge that consumers own their conversations and I cannot inspect consumer chat history.</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('delegatedCommitModal')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveCommitment" onclick="doSaveCommitment()">Confirm & Save Commitment</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _aiAccounts = [];
+let _providerEmail = "";
+
+function escHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function openConnectModal(prefProvider) {
+  const user = getUser();
+  _providerEmail = user?.email || "provider@gmail.com";
+  const emailInput = document.getElementById("aiAccountEmail");
+  if (emailInput) emailInput.value = _providerEmail;
+  if (prefProvider) {
+    document.getElementById("aiProviderSelect").value = prefProvider;
+  }
+  onProviderSelectChange();
+  openModal("connectAiModal");
+}
+
+function onProviderSelectChange() {
+  const p = document.getElementById("aiProviderSelect").value;
+  const keyInput = document.getElementById("fallbackApiKey");
+  if (p === "gemini") {
+    keyInput.placeholder = "AIzaSy… (Google Gemini API Key)";
+  } else if (p === "openai") {
+    keyInput.placeholder = "sk-… (OpenAI API Key)";
+  } else if (p === "anthropic") {
+    keyInput.placeholder = "sk-ant-… (Anthropic API Key)";
+  } else {
+    keyInput.placeholder = "Enter test API key (min 6 chars)";
+  }
+}
+
+async function doConnectAiAccount() {
+  const provider = document.getElementById("aiProviderSelect").value;
+  const label = (document.getElementById("aiConnLabel")?.value || "").trim();
+  const cap = parseInt(document.getElementById("aiDeclaredCap").value) || 100000;
+  const apiKey = document.getElementById("fallbackApiKey").value.trim();
+  const btn = document.getElementById("btnConnectAi");
+
+  if (!apiKey && provider !== "mock") {
+    toast("Please enter your provider API key for verification.", "err");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block"></span> Verifying Credential with Upstream Provider…`;
+
+  try {
+    const payload = {
+      provider_type: provider,
+      label: label || `${provider.toUpperCase()} API Capacity`,
+      account_email: _providerEmail || "provider@gmail.com",
+      connection_method: "api_key_fallback",
+      declared_capacity: cap,
+      capacity_declared: cap,
+      api_key: apiKey || "mock_key_authorized_123"
+    };
+
+    const res = await ProviderAPI.connectAiAccount(payload);
+    closeModal("connectAiModal");
+    toast(`✓ Credential Validated! Status: ${res.data?.authorization_status || 'AUTHORIZED'} · Marketplace: ${res.data?.marketplace_status || 'ELIGIBLE'}`, "ok");
+    loadAccounts();
+  } catch(e) {
+    toast(e.message || "Credential verification failed. Please check your API key.", "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Verify & Connect Capacity";
+  }
+}
+
+async function doAuthorizeGemini(id) {
+  try {
+    const res = await apiRequest('/provider/ai-accounts/google/auth-url');
+    if (res.configured && res.auth_url) {
+      window.location.href = res.auth_url;
+    } else {
+      alert(
+        "OFFICIAL GOOGLE AUTHORIZATION STATUS:\n\n" +
+        (res.message || "Google does not provide an officially supported execution mechanism for using this consumer AI subscription to fulfill TokenPool marketplace requests.")
+      );
+    }
+  } catch(e) {
+    alert("Authorization Error: " + (e.message || "Unable to retrieve Google OAuth URL."));
+  }
+}
+
+async function doAuthorizeOpenAI(id) {
+  try {
+    const res = await apiRequest('/provider/ai-accounts/openai/auth-url');
+    if (res.configured && res.auth_url) {
+      window.location.href = res.auth_url;
+    } else {
+      alert(
+        "OFFICIAL OPENAI DELEGATED PLAN STATUS: NOT AVAILABLE\n\n" +
+        (res.message || "TokenPool is not currently enabled as an approved OpenAI participating integration.")
+      );
+    }
+  } catch(e) {
+    alert("Authorization Error: " + (e.message || "Unable to retrieve OpenAI authorization URL."));
+  }
+}
+
+function openCommitmentModal(id) {
+  const a = _aiAccounts.find(x => x.connection_id === id || x.id === id);
+  if (!a) return;
+  document.getElementById("commitConnId").value = a.connection_id || a.id;
+  document.getElementById("commitAccountEmail").value = a.account_email || _providerEmail;
+  const pct = a.marketplace_commitment || 20;
+  document.getElementById("commitRange").value = pct;
+  document.getElementById("commitPercentLabel").textContent = pct + "%";
+  document.getElementById("commitUnits").value = a.committed_units || (pct * 1000);
+  document.getElementById("chkCommitConfirm").checked = false;
+  document.getElementById("chkPrivacyConfirm").checked = false;
+  openModal("delegatedCommitModal");
+}
+
+function onCommitRangeChange(val) {
+  document.getElementById("commitPercentLabel").textContent = val + "%";
+  document.getElementById("commitUnits").value = parseInt(val) * 1000;
+}
+
+function onCommitUnitsChange(val) {
+  const units = parseInt(val) || 0;
+  const pct = Math.min(100, Math.max(1, Math.round(units / 1000)));
+  document.getElementById("commitRange").value = pct;
+  document.getElementById("commitPercentLabel").textContent = pct + "%";
+}
+
+async function doSaveCommitment() {
+  const id = document.getElementById("commitConnId").value;
+  const pct = parseFloat(document.getElementById("commitRange").value) || 20;
+  const units = parseInt(document.getElementById("commitUnits").value) || 20000;
+  const chk1 = document.getElementById("chkCommitConfirm").checked;
+  const chk2 = document.getElementById("chkPrivacyConfirm").checked;
+  const btn = document.getElementById("btnSaveCommitment");
+
+  if (!chk1 || !chk2) {
+    toast("Please acknowledge and confirm both authorization and privacy statements.", "err");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Saving Commitment…";
+
+  try {
+    await ProviderAPI.setDelegatedCommitment(id, {
+      commitment_percent: pct,
+      committed_units: units,
+      confirmed: true,
+      consumer_chat_privacy_acknowledged: true
+    });
+    closeModal("delegatedCommitModal");
+    toast(`Marketplace commitment updated to ${pct}% (${units.toLocaleString()} units)!`, "ok");
+    loadAccounts();
+  } catch(e) {
+    toast(e.message || "Failed to update commitment.", "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Confirm & Save Commitment";
+  }
+}
+
+function openDeclareModal(id) {
+  const a = _aiAccounts.find(x => x.connection_id === id || x.id === id);
+  if (!a) return;
+  document.getElementById("decConnId").value = a.connection_id || a.id;
+  document.getElementById("decConnName").value = `${a.display_name || a.provider_type} (${a.account_email || '—'})`;
+  document.getElementById("decAmount").value = a.capacity_declared || 0;
+  document.getElementById("decHint").textContent = `Current remaining: ${Number(a.capacity_remaining||0).toLocaleString()} tokens.`;
+  openModal("declareCapModal");
+}
+
+async function doDeclareCapacity() {
+  const id  = document.getElementById("decConnId").value;
+  const cap = parseInt(document.getElementById("decAmount").value);
+  const btn = document.getElementById("btnDoDeclare");
+
+  if (isNaN(cap) || cap < 0) {
+    toast("Please enter a valid capacity quantity", "err");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Updating…";
+
+  try {
+    await ProviderAPI.declareAiCapacity(id, cap);
+    closeModal("declareCapModal");
+    toast("Declared capacity updated successfully!", "ok");
+    loadAccounts();
+  } catch(e) {
+    toast(e.message || "Failed to update declared capacity.", "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Update Declared Capacity";
+  }
+}
+
+async function doDisconnect(id) {
+  if (!confirm("Are you sure you want to disconnect this AI account? All active listings backed by this source will be paused.")) return;
+  try {
+    await ProviderAPI.disconnectAiAccount(id);
+    toast("AI account disconnected and listings paused.", "ok");
+    loadAccounts();
+  } catch(e) {
+    toast(e.message || "Failed to disconnect.", "err");
+  }
+}
+
+async function doHealthCheck(id) {
+  try {
+    const res = await ProviderAPI.healthCheckAiAccount(id);
+    toast(`Health check result: ${res.data?.connection_status || 'OK'} (Marketplace: ${res.data?.marketplace_status || 'OK'})`, "ok");
+    loadAccounts();
+  } catch(e) {
+    toast(e.message || "Health check failed", "err");
+  }
+}
+
+function buildAccountsTable(accounts) {
+  return `<div class="tbl-wrap"><table>
+    <thead>
+      <tr>
+        <th>AI Service</th>
+        <th>Account Email</th>
+        <th>Identity Match</th>
+        <th>Connection</th>
+        <th>Authorization</th>
+        <th>Execution</th>
+        <th>Marketplace Eligibility</th>
+        <th>Commitment / Declared</th>
+        <th>Remaining</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${accounts.map(a => {
+        const isMatched = a.identity_status === 'IDENTITY_MATCHED';
+        const isConnected = a.connection_status === 'CONNECTED';
+        const isAuthorized = a.authorization_status === 'AUTHORIZED';
+        const isEligible = a.marketplace_status === 'ELIGIBLE';
+        const isDelegated = a.capacity_source === 'OFFICIAL_DELEGATED_PLAN';
+        const isExecSupported = a.execution_status === 'EXECUTION_SUPPORTED';
+
+        const authBadgeClass = isAuthorized ? 'badge-green' : (a.authorization_status === 'ACTION_REQUIRED' ? 'badge-yellow' : 'badge-gray');
+        const authBadgeLabel = isAuthorized ? '✓ Authorized' : (a.authorization_status === 'ACTION_REQUIRED' ? '⚠ Action Required' : (a.authorization_status || 'Not Auth'));
+
+        const execBadgeClass = isExecSupported ? 'badge-green' : 'badge-gray';
+        const execBadgeLabel = isExecSupported ? 'Supported' : 'Not Supported';
+
+        const declaredDisplay = isDelegated 
+          ? `<span style="font-weight:700">${a.marketplace_commitment || 0}%</span> <span style="font-size:11px;color:var(--slate-400)">(${Number(a.committed_units||0).toLocaleString()} u)</span>`
+          : `<span style="font-weight:700">${Number(a.capacity_declared||0).toLocaleString('en-IN')}</span>`;
+
+        const remainingDisplay = isDelegated
+          ? `<span style="font-weight:700;color:var(--teal)">${Number(a.remaining_units||0).toLocaleString()} u</span>`
+          : `<span style="font-weight:700;color:var(--teal)">${Number(a.capacity_remaining||0).toLocaleString('en-IN')}</span>`;
+
+        return `<tr>
+          <td>
+            <div style="font-weight:700">${escHtml(a.display_name || a.name || a.provider_type)}</div>
+            <div style="font-size:11px;color:var(--slate-400)">
+              ${isDelegated ? 'Official Delegated Plan' : (escHtml((a.provider_type||'').toUpperCase()))}
+            </div>
+          </td>
+          <td><code style="font-size:12px">${escHtml(a.account_email || '—')}</code></td>
+          <td>
+            <span class="badge ${isMatched ? 'badge-green' : 'badge-yellow'}">
+              ${isMatched ? '✓ Matched' : 'Pending'}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${isConnected ? 'badge-green' : 'badge-gray'}">
+              ${isConnected ? '✓ Connected' : 'Disconnected'}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${authBadgeClass}">
+              ${authBadgeLabel}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${execBadgeClass}">
+              ${execBadgeLabel}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${isEligible ? 'badge-green' : 'badge-yellow'}" title="${escHtml(a.marketplace_reason || '')}">
+              ${isEligible ? '✓ Eligible' : '⚠ Not Eligible'}
+            </span>
+          </td>
+          <td>${declaredDisplay}</td>
+          <td>${remainingDisplay}</td>
+          <td>
+            <div style="display:flex;gap:5px;align-items:center">
+              ${isConnected ? `
+                ${!isAuthorized && (a.provider_type === 'gemini' || a.provider_type === 'google') ? `
+                  <button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 8px;background:var(--primary);color:#fff" onclick="doAuthorizeGemini('${a.connection_id}')" title="Authorize Gemini via Google OAuth">Authorize Gemini</button>
+                ` : ''}
+                ${!isAuthorized && (a.provider_type === 'openai' || a.provider_type === 'chatgpt') ? `
+                  <button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 8px;background:#10a37f;color:#fff" onclick="doAuthorizeOpenAI('${a.connection_id}')" title="Connect with ChatGPT">Connect ChatGPT</button>
+                ` : ''}
+                ${isDelegated ? `
+                  <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px;border-color:#10a37f;color:#10a37f" onclick="openCommitmentModal('${a.connection_id}')" title="Set Marketplace Commitment">Commitment</button>
+                ` : `
+                  <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px" onclick="openDeclareModal('${a.connection_id}')" title="Declare Capacity">Capacity</button>
+                `}
+                <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px" onclick="doHealthCheck('${a.connection_id}')" title="Health Check">Health</button>
+                <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 7px;color:#dc2626" onclick="doDisconnect('${a.connection_id}')" title="Disconnect">Disconnect</button>
+              ` : `
+                ${(a.provider_type === 'openai' || a.provider_type === 'chatgpt') ? `
+                  <button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 8px;background:#10a37f;color:#fff" onclick="doAuthorizeOpenAI('${a.connection_id || ''}')">Connect with ChatGPT</button>
+                ` : `
+                  <button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 8px" onclick="openConnectModal('${a.provider_type}')">Connect</button>
+                `}
+              `}
+            </div>
+          </td>
+        </tr>`;
+      }).join("")}
+    </tbody>
+  </table></div>
+  <div style="padding:10px 16px;background:#f8fafc;border-top:1px solid var(--slate-100);font-size:11px;color:var(--slate-500)">
+    ℹ️ <strong>Capacity Guarantee:</strong> TokenPool tracks provider-declared capacity. If upstream execution is unavailable, marketplace execution is safely paused and 0 credits are deducted.
+  </div>`;
+
+}
+
+async function loadAccounts() {
+  try {
+    const res = await ProviderAPI.aiAccounts();
+    _aiAccounts = res?.data?.accounts || res?.accounts || [];
+    _providerEmail = res?.data?.provider_identity?.email || res?.provider_identity?.email || "";
+    
+    const connCount = _aiAccounts.filter(x => x.connection_status === 'CONNECTED').length;
+    document.getElementById("connCount").textContent = `${connCount} connected / ${_aiAccounts.length} services`;
+
+    if (_aiAccounts.length) {
+      document.getElementById("connList").innerHTML = buildAccountsTable(_aiAccounts);
+    } else {
+      document.getElementById("connList").innerHTML = `
+        <div class="empty">
+          <div class="empty-title">No AI accounts found</div>
+          <button class="btn btn-primary" style="margin-top:12px" onclick="openConnectModal()">Connect AI Account</button>
+        </div>
+      `;
+    }
+  } catch(e) {
+    document.getElementById("connCount").textContent = "Error loading";
+    document.getElementById("connList").innerHTML = `<div style="text-align:center;padding:24px;color:#ef4444">Failed to load AI accounts: ${escHtml(e.message||'')}</div>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const pref = urlParams.get("connect");
+  if (pref) {
+    setTimeout(() => openConnectModal(pref), 300);
+  }
+  loadAccounts();
+});
+</script>
+{% endblock %}

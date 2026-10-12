@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block desc %}TokenPool consumer dashboard — your AI usage overview{% endblock %}
+{% block bc_page %}Overview{% endblock %}
+{% block active_page %}dashboard{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <div class="page-super" id="greeting">Good morning</div>
+    <div class="page-title" id="pageTitle">Overview</div>
+    <div class="page-sub">Here's what's happening with your AI usage today.</div>
+  </div>
+  <div class="page-hd-actions">
+    <a href="/chat" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+      New Chat
+    </a>
+  </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="sg" id="statsGrid">
+  <div class="scard" style="border-left:3px solid #0d9488">
+    <div class="scard-top">
+      <div class="scard-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3"/></svg></div>
+      <span class="scard-badge" id="balChg">+0%</span>
+    </div>
+    <div class="scard-label">Wallet Balance</div>
+    <div class="scard-val" id="balVal"><span class="spinner"></span></div>
+    <div class="scard-sub" id="balSub">Available to spend</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top">
+      <div class="scard-icon" style="background:#ede9fe;color:#7c3aed"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div>
+      <span class="scard-badge" id="credChg">+0%</span>
+    </div>
+    <div class="scard-label">AI Credits</div>
+    <div class="scard-val" id="credVal"><span class="spinner"></span></div>
+    <div class="scard-sub">8.5 credits = ₹1</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top">
+      <div class="scard-icon" style="background:#dbeafe;color:#2563eb"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg></div>
+      <span class="scard-badge" id="tokChg">+0%</span>
+    </div>
+    <div class="scard-label">Today's Usage</div>
+    <div class="scard-val" id="todayTok"><span class="spinner"></span></div>
+    <div class="scard-sub" id="todayCost">tokens</div>
+  </div>
+  <div class="scard">
+    <div class="scard-top">
+      <div class="scard-icon" style="background:#dcfce7;color:#16a34a"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185Z"/></svg></div>
+      <span class="scard-badge" id="mReqChg">+0%</span>
+    </div>
+    <div class="scard-label">Monthly Requests</div>
+    <div class="scard-val" id="mReqVal"><span class="spinner"></span></div>
+    <div class="scard-sub" id="mCostSub">this month</div>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="cg">
+  <!-- Usage chart -->
+  <div class="card">
+    <div class="card-hd">
+      <div><div class="card-title">Token Usage</div><div class="card-sub">Tokens consumed per day</div></div>
+      <div class="card-acts">
+        <div class="timetabs">
+          <button class="timetab active" data-chart-r="7d" onclick="loadChart('7d',this)">7D</button>
+          <button class="timetab" data-chart-r="30d" onclick="loadChart('30d',this)">30D</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="height:200px;position:relative"><canvas id="usageChart"></canvas></div>
+      <div id="chartEmpty" style="display:none;text-align:center;padding:60px 20px;color:#94a3b8;font-size:13px">No usage data yet — start a chat to see your usage here.</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <div class="card-hd"><div class="card-title">Quick Actions</div></div>
+    <a href="/wallet" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3"/></svg></div>
+      <div><div class="qa-title">Top Up Wallet</div><div class="qa-sub">Add credits to your account</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/chat" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div>
+      <div><div class="qa-title">Start AI Chat</div><div class="qa-sub">Chat with available models</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/marketplace" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg></div>
+      <div><div class="qa-title">Browse Marketplace</div><div class="qa-sub">Explore available AI models</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/provider/dashboard" class="qa">
+      <div class="qa-ico" style="background:#ede9fe;color:#7c3aed"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5"/></svg></div>
+      <div><div class="qa-title">Provider Dashboard</div><div class="qa-sub">Manage your AI capacity</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+    <a href="/support" class="qa">
+      <div class="qa-ico"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.712 4.33a9.027 9.027 0 0 1 1.652 1.306c.51.51.944 1.067 1.306 1.652M16.712 4.33l-3.448 4.138m3.448-4.138a9.014 9.014 0 0 0-9.424 0M19.67 7.288l-4.138 3.45m4.138-3.45a9.03 9.03 0 0 1 0 9.424m-4.138-5.986a9.03 9.03 0 0 1 0 5.986m0 0-3.45 4.138m3.45-4.138a9.014 9.014 0 0 1-9.424 0M4.33 16.712l4.138-3.45m-4.138 3.45a9.027 9.027 0 0 0 1.652 1.306c.51.51 1.067.944 1.652 1.306m-3.304-2.612 3.45-4.138m-3.45 4.138a9.014 9.014 0 0 1 0-9.424m3.45 5.986a9.014 9.014 0 0 1 0-5.986m0 0 4.138-3.45m-4.138 3.45c.51-.51.944-1.067 1.306-1.652a9.03 9.03 0 0 1 1.652-1.306m0 0 3.45 4.138"/></svg></div>
+      <div><div class="qa-title">Get Support</div><div class="qa-sub">Open a support ticket</div></div>
+      <svg class="qa-arr" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- RECENT ACTIVITY + NOTIFICATIONS -->
+<div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-top:0">
+  <!-- Recent Requests -->
+  <div class="card">
+    <div class="card-hd">
+      <div><div class="card-title">Recent AI Requests</div><div class="card-sub">Your latest API calls</div></div>
+      <a href="/usage" class="btn btn-outline btn-sm">View all</a>
+    </div>
+    <div class="tbl-wrap">
+      <table id="reqTable">
+        <thead><tr><th>Model</th><th>Tokens</th><th>Cost</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody id="reqBody">
+          <tr><td colspan="5"><div style="text-align:center;padding:20px"><span class="spinner"></span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notifications (loaded from API) -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title">Notifications</div>
+      <a href="/notifications" class="btn btn-ghost btn-sm">See all</a>
+    </div>
+    <div id="notifList">
+      <div style="text-align:center;padding:24px"><span class="spinner"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- API error state -->
+<div id="dashError" style="display:none">
+  <div class="alert alert-error" style="margin-top:16px">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <div>
+      <strong>Unable to load dashboard data.</strong>
+      <span id="dashErrorMsg"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:12px" onclick="loadDashboard()">Retry</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const h = new Date().getHours();
+document.getElementById("greeting").textContent = h<12?"Good morning":h<17?"Good afternoon":"Good evening";
+const user = getUser();
+if (user) document.getElementById("pageTitle").textContent = "Overview, " + user.full_name.split(" ")[0];
+
+let _chartRange = "7d";
+let _chartData  = null;
+
+function showDashError(msg) {
+  document.getElementById("dashErrorMsg").textContent = " " + (msg || "");
+  document.getElementById("dashError").style.display = "block";
+  // Set stat cards to error state
+  ["balVal","credVal","todayTok","mReqVal"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<span style="color:#ef4444;font-size:13px">—</span>';
+  });
+  document.getElementById("reqBody").innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#94a3b8">Could not load request data.</td></tr>`;
+  document.getElementById("notifList").innerHTML = `<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">Could not load notifications.</div>`;
+}
+
+async function loadDashboard() {
+  document.getElementById("dashError").style.display = "none";
+
+  try {
+    const d = await ConsumerAPI.overview();
+    const s = d.data || d;
+
+    document.getElementById("balVal").textContent   = "₹" + Number(s.wallet_balance||0).toFixed(2);
+    document.getElementById("credVal").textContent  = Number(s.available_credits||0).toLocaleString("en-IN");
+    document.getElementById("todayTok").textContent = Number(s.today_usage||0).toLocaleString("en-IN");
+    document.getElementById("todayCost").textContent= s.today_usage > 0 ? "tokens today" : "no usage today";
+    document.getElementById("mReqVal").textContent  = Number(s.today_requests||0).toLocaleString("en-IN");
+    document.getElementById("mCostSub").textContent = "requests today";
+
+    // Chart from real daily data
+    _chartData = s.chart_data || [];
+    renderChart(_chartRange);
+
+    // Recent requests table
+    const reqs = s.recent_requests || [];
+    if (reqs.length) {
+      document.getElementById("reqBody").innerHTML = reqs.map(r => `
+        <tr>
+          <td><div class="mb-cell"><div class="m-av" style="background:${mcol((r.badge||r.model_name||'N')[0])}">${r.badge||'?'}</div>${r.model_name||'—'}</div></td>
+          <td>${Number(r.total_tokens||0).toLocaleString("en-IN")}</td>
+          <td>${r.cost||'₹0.0000'}</td>
+          <td>${sbadge(r.status||'COMPLETED')}</td>
+          <td class="text-muted">${r.date||fDate(r.created_at||new Date())}</td>
+        </tr>`).join("");
+    } else {
+      document.getElementById("reqBody").innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></div><div class="empty-title">No requests yet</div><div class="empty-desc">Start a chat to see your AI usage here</div></div></td></tr>`;
+    }
+  } catch(e) {
+    showDashError(e.message);
+    return;
+  }
+
+  // Load notifications separately (non-blocking)
+  try {
+    const nd = await NotifAPI.list();
+    const notifs = nd?.data || [];
+    const recent = notifs.slice(0, 5);
+    if (recent.length) {
+      document.getElementById("notifList").innerHTML = recent.map(n => {
+        const ico = n.type === "SUCCESS" ? "ok" : n.type === "WARNING" ? "warn" : "info";
+        const icons = {
+          ok: `<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>`,
+          warn: `<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`,
+          info: `<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>`
+        };
+        return `<div class="ni ${n.is_read?'':'unread'}">
+          <div class="ni-ico ${ico}">${icons[ico]}</div>
+          <div><div class="ni-title">${escHtml(n.title)}</div><div class="ni-msg">${escHtml(n.message)}</div><div class="ni-date">${fDate(n.created_at)}</div></div>
+          ${n.is_read?'':'<div class="ni-dot"></div>'}
+        </div>`;
+      }).join("");
+    } else {
+      document.getElementById("notifList").innerHTML = `<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">No notifications yet.</div>`;
+    }
+  } catch(e) {
+    document.getElementById("notifList").innerHTML = `<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">Could not load notifications.</div>`;
+  }
+}
+
+function renderChart(range) {
+  _chartRange = range;
+  const data = _chartData || [];
+  const labels = data.map(d => d.date || "");
+  const values = data.map(d => d.tokens || 0);
+  const hasData = values.some(v => v > 0);
+
+  const canvas = document.getElementById("usageChart");
+  const empty  = document.getElementById("chartEmpty");
+
+  if (!hasData) {
+    canvas.style.display = "none";
+    empty.style.display  = "block";
+  } else {
+    canvas.style.display = "block";
+    empty.style.display  = "none";
+    lineChart("usageChart", labels, values);
+  }
+}
+
+function loadChart(range, btn) {
+  if (btn) {
+    document.querySelectorAll("[data-chart-r]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+  // For dashboard we only have 7d data from overview; fetch fresh if needed
+  renderChart(range);
+}
+
+function escHtml(s) { return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function mcol(l){return{N:"#0d9488",S:"#2563eb",A:"#7c3aed",V:"#d97706",C:"#dc2626",G:"#16a34a",O:"#f59e0b"}[(l||"N").toUpperCase()]||"#64748b"}
+function fDate(s){return new Date(s).toLocaleDateString("en-IN",{day:"2-digit",month:"short"})}
+
+document.addEventListener("DOMContentLoaded", loadDashboard);
+</script>
+{% endblock %}

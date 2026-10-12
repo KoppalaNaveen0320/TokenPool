@@ -1,0 +1,88 @@
+{% extends "admin/dashboard.html" %}
+{% block title %}Users — Admin{% endblock %}
+{% block bc_page %}Users{% endblock %}
+{% block active_page %}admin_users{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div><div class="page-super">Admin</div><div class="page-title">User Management</div><div class="page-sub">View and manage all registered users.</div></div>
+  <div class="page-hd-actions"><span class="badge badge-teal" style="font-size:12px" id="usrTotal">Loading…</span></div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <div class="card-body" style="padding:12px 16px">
+    <div class="filter-bar">
+      <div class="srch" style="flex:1;min-width:200px">
+        <svg class="srch-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="search" class="srch-input" id="usrSearch" placeholder="Search users…" oninput="loadUsers()">
+      </div>
+      <select class="fc fsel" style="width:auto" id="usrRole" onchange="loadUsers()">
+        <option value="">All Roles</option>
+        <option value="CONSUMER">Consumer</option>
+        <option value="PROVIDER">Provider</option>
+        <option value="ADMIN">Admin</option>
+      </select>
+      <select class="fc fsel" style="width:auto" id="usrStatus" onchange="loadUsers()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="suspended">Suspended</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>User</th><th>Role</th><th>Email</th><th>Wallet</th><th>Requests</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody id="usrBody"><tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8">Loading…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="pag" id="usrPag"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadUsers() {
+  const q      = document.getElementById("usrSearch").value;
+  const role   = document.getElementById("usrRole").value;
+  const status = document.getElementById("usrStatus").value;
+  try {
+    const d = await AdminAPI.users({ search: q, role, status });
+    const users = d?.data?.users || d?.users || [];
+    document.getElementById("usrTotal").textContent = (d?.data?.total || users.length) + " users";
+    document.getElementById("usrBody").innerHTML = users.length ? users.map(u => `
+      <tr>
+        <td><div class="mb-cell"><div class="m-av" style="background:#0d9488">${(u.full_name||"U")[0]}</div>${u.full_name||"—"}</div></td>
+        <td><span class="badge ${u.role==="ADMIN"?"badge-purple":u.role==="PROVIDER"?"badge-blue":"badge-teal"}">${u.role}</span></td>
+        <td class="text-muted">${u.email||"—"}</td>
+        <td>₹${Number(u.wallet_balance||0).toFixed(2)}</td>
+        <td>${Number(u.total_requests||0).toLocaleString("en-IN")}</td>
+        <td><span class="badge ${u.is_active?"badge-green":"badge-red"}">${u.is_active?"ACTIVE":"SUSPENDED"}</span></td>
+        <td class="text-muted">${new Date(u.created_at||Date.now()).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="row-btn" title="Toggle status" onclick="toggleUser('${u.id}','${u.is_active?'SUSPENDED':'ACTIVE'}')">
+              <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="${u.is_active?'M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636':'m4.5 12.75 6 6 9-13.5'}"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`).join("") :
+      `<tr><td colspan="8"><div class="empty"><div class="empty-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372"/></svg></div><div class="empty-title">No users found</div></div></td></tr>`;
+  } catch(e) {
+    document.getElementById("usrTotal").textContent = "—";
+    document.getElementById("usrBody").innerHTML = `<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:24px">Unable to load users from database. <a href="javascript:location.reload()" style="color:#0d9488">Retry</a></td></tr>`;
+  }
+}
+
+async function toggleUser(id, newStatus) {
+  try {
+    await AdminAPI.toggleUser(id, newStatus);
+    toast("User status updated!", "ok");
+    loadUsers();
+  } catch(e) { toast(e.message || "Failed to update user status", "err"); }
+}
+document.addEventListener("DOMContentLoaded", loadUsers);
+</script>
+{% endblock %}
